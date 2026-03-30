@@ -1,59 +1,272 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 🛍️ ShopLaravel — Application E-Commerce Laravel
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Application e-commerce complète construite avec **Laravel 11**, **Blade**, **Bootstrap 5** et **MySQL**.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 📋 Prérequis
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Avant d'installer le projet, assurez-vous d'avoir :
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+| Outil | Version minimale | Vérification |
+|-------|-----------------|--------------|
+| PHP | 8.2+ | `php --version` |
+| Composer | 2.x | `composer --version` |
+| MySQL / MariaDB | 8.0+ / 10.x | `mysql --version` |
+| Git | toute version | `git --version` |
 
-## Learning Laravel
+### Outils recommandés selon votre OS
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+| OS | Outil recommandé | Lien |
+|----|-----------------|------|
+| Windows | **XAMPP** ou **Laragon** | https://laragon.org (recommandé) |
+| macOS | **MAMP** ou **Homebrew** | https://www.mamp.info |
+| Linux | PHP + MySQL natif | `sudo apt install php8.2 mysql-server` |
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+---
 
-## Laravel Sponsors
+## 🚀 Installation en local (étape par étape)
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+### Étape 1 — Cloner le projet
 
-### Premium Partners
+```bash
+git clone <URL_DU_REPO> shoplaravel
+cd shoplaravel
+```
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+Ou téléchargez le `.zip` et extrayez-le dans votre dossier de projets.
 
-## Contributing
+---
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### Étape 2 — Installer les dépendances PHP
 
-## Code of Conduct
+```bash
+composer install
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+> ⏱️ Cela peut prendre 1 à 2 minutes selon votre connexion.
 
-## Security Vulnerabilities
+---
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### Étape 3 — Créer le fichier `.env`
 
-## License
+```bash
+# Copier le fichier d'exemple
+cp .env.local.example .env
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+# Ou sur Windows (Command Prompt) :
+copy .env.local.example .env
+```
+
+---
+
+### Étape 4 — Générer la clé d'application
+
+```bash
+php artisan key:generate
+```
+
+Vous verrez : `Application key set successfully.`
+
+---
+
+### Étape 5 — Créer la base de données MySQL
+
+#### Avec XAMPP / WAMP / Laragon
+1. Ouvrez **phpMyAdmin** → http://localhost/phpmyadmin
+2. Cliquez sur **"Nouvelle base de données"**
+3. Nom : `ecommerce` → Interclassement : `utf8mb4_unicode_ci`
+4. Cliquez **Créer**
+
+#### En ligne de commande
+```sql
+mysql -u root -p
+
+-- Dans MySQL :
+CREATE DATABASE ecommerce CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+QUIT;
+```
+
+---
+
+### Étape 6 — Configurer le `.env`
+
+Ouvrez le fichier `.env` et modifiez la section base de données :
+
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=ecommerce
+DB_USERNAME=root
+DB_PASSWORD=           # Votre mot de passe MySQL (souvent vide avec XAMPP)
+```
+
+> **XAMPP/WAMP :** `DB_USERNAME=root` et `DB_PASSWORD=` (vide)
+> **MAMP :** `DB_PORT=8889`, `DB_PASSWORD=root`
+> **Laragon :** `DB_USERNAME=root` et `DB_PASSWORD=` (vide)
+
+---
+
+### Étape 7 — Exécuter les migrations (créer les tables)
+
+```bash
+php artisan migrate
+```
+
+Vous verrez toutes les tables créées :
+```
+✓ users
+✓ products
+✓ carts
+✓ cart_items
+✓ orders
+✓ order_items
+✓ payments
+```
+
+---
+
+### Étape 8 — Insérer les données de test (comptes + produits)
+
+```bash
+php artisan db:seed
+```
+
+Cela crée automatiquement :
+- ✅ **1 compte Admin** : `admin@shop.com` / `Admin123!`
+- ✅ **2 comptes Clients** : `alice@example.com` / `User123!`
+- ✅ **12 produits** dans 4 catégories (Électronique, Mode, Maison, Sport)
+
+---
+
+### Étape 9 — Créer le lien symbolique pour les images
+
+```bash
+php artisan storage:link
+```
+
+---
+
+### Étape 10 — Lancer le serveur de développement
+
+```bash
+php artisan serve
+```
+
+L'application est accessible sur : **http://localhost:8000**
+
+---
+
+## 🔐 Comptes de connexion
+
+| Rôle | Email | Mot de passe | Accès |
+|------|-------|--------------|-------|
+| **Administrateur** | `admin@shop.com` | `Admin123!` | Dashboard admin + boutique |
+| **Client 1** | `alice@example.com` | `User123!` | Boutique, panier, commandes |
+| **Client 2** | `bob@example.com` | `User123!` | Boutique, panier, commandes |
+
+---
+
+## 📦 Résumé des commandes (copier-coller)
+
+```bash
+# Cloner et entrer dans le projet
+git clone <URL_DU_REPO> shoplaravel && cd shoplaravel
+
+# Installer les dépendances
+composer install
+
+# Configuration
+cp .env.local.example .env
+php artisan key:generate
+
+# Base de données (après avoir créé la DB 'ecommerce' dans MySQL)
+php artisan migrate
+php artisan db:seed
+
+# Lien storage
+php artisan storage:link
+
+# Démarrer
+php artisan serve
+```
+
+Puis ouvrez → **http://localhost:8000**
+
+---
+
+## 🌐 Pages de l'application
+
+| Page | URL |
+|------|-----|
+| Accueil | http://localhost:8000 |
+| Catalogue produits | http://localhost:8000/produits |
+| Connexion | http://localhost:8000/connexion |
+| Inscription | http://localhost:8000/inscription |
+| Panier | http://localhost:8000/panier |
+| Mes commandes | http://localhost:8000/mes-commandes |
+| **Dashboard Admin** | http://localhost:8000/admin |
+
+---
+
+## ❓ Problèmes courants
+
+### ❌ `SQLSTATE[HY000] [1045] Access denied`
+→ Votre mot de passe MySQL est incorrect dans `.env`. Vérifiez `DB_USERNAME` et `DB_PASSWORD`.
+
+### ❌ `Unknown database 'ecommerce'`
+→ La base de données n'a pas été créée. Exécutez l'étape 5.
+
+### ❌ `php artisan` ne fonctionne pas
+→ PHP n'est pas dans votre PATH. Utilisez le chemin complet : `C:\xampp\php\php artisan` (Windows)
+
+### ❌ Page blanche ou erreur 500
+→ Vérifiez les permissions : `chmod -R 775 storage bootstrap/cache` (Linux/Mac)
+
+### ❌ Pas de produits affichés
+→ Exécutez `php artisan db:seed` (étape 8).
+
+---
+
+## 🗂️ Structure du projet
+
+```
+shoplaravel/
+├── app/
+│   ├── Http/
+│   │   ├── Controllers/        # AuthController, ProductController, CartController...
+│   │   ├── Middleware/         # AdminMiddleware
+│   │   └── Requests/           # StoreProductRequest, ProcessPaymentRequest...
+│   ├── Models/                 # User, Product, Cart, Order, Payment...
+│   └── Providers/
+├── database/
+│   ├── migrations/             # Tables : users, products, carts, orders...
+│   └── seeders/                # Données de test (comptes + 12 produits)
+├── resources/views/
+│   ├── layouts/                # app.blade.php, admin.blade.php
+│   ├── auth/                   # login.blade.php, register.blade.php
+│   ├── products/               # index.blade.php, show.blade.php
+│   ├── cart/                   # index.blade.php
+│   ├── orders/                 # index.blade.php, show.blade.php, checkout.blade.php
+│   ├── payment/                # success.blade.php, failed.blade.php
+│   ├── admin/                  # dashboard, products, orders, payments, users
+│   └── components/             # product-card.blade.php
+├── routes/
+│   └── web.php                 # Toutes les routes avec middlewares
+└── .env                        # Configuration (à adapter)
+```
+
+---
+
+## 🛠️ Tech Stack
+
+- **Backend** : Laravel 11 (PHP 8.2)
+- **Frontend** : Blade + Bootstrap 5 + Bootstrap Icons
+- **Base de données** : MySQL / MariaDB
+- **Architecture** : MVC avec Eloquent ORM
+- **Sécurité** : CSRF, hashage bcrypt, middleware, Form Requests
+
+---
+
+*Développé avec Laravel 11 — © 2024 ShopLaravel*
