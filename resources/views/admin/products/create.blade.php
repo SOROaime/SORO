@@ -60,20 +60,47 @@
 
                     <div>
                         <label class="form-label">Catégorie</label>
-                        <div class="row g-2">
-                            <div class="col-7">
-                                <select name="category" id="categorySelect"
-                                        class="form-select @error('category') is-invalid @enderror">
-                                    <option value="">— Sélectionner ou saisir —</option>
-                                    @foreach($categories as $cat)
-                                        <option value="{{ $cat }}" {{ old('category') === $cat ? 'selected' : '' }}>{{ $cat }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="col-5">
-                                <input type="text" id="categoryNew" class="form-control" placeholder="Nouvelle catégorie...">
+
+                        {{-- Champ caché qui sera réellement soumis --}}
+                        <input type="hidden" name="category" id="categoryValue" value="{{ old('category') }}">
+
+                        {{-- Onglets Existante / Nouvelle --}}
+                        <div class="mb-2 d-flex gap-2">
+                            <button type="button" id="tabExisting"
+                                    class="btn btn-sm fw-600"
+                                    style="background:var(--primary);color:#fff;border-radius:8px;">
+                                <i class="bi bi-list-ul me-1"></i>Existante
+                            </button>
+                            <button type="button" id="tabNew"
+                                    class="btn btn-sm btn-outline-secondary fw-600"
+                                    style="border-radius:8px;">
+                                <i class="bi bi-plus-circle me-1"></i>Nouvelle
+                            </button>
+                        </div>
+
+                        {{-- Panneau : sélection existante --}}
+                        <div id="panelExisting">
+                            <select id="categorySelect"
+                                    class="form-select @error('category') is-invalid @enderror">
+                                <option value="">— Choisir une catégorie —</option>
+                                @foreach($categories as $cat)
+                                    <option value="{{ $cat }}" {{ old('category') === $cat ? 'selected' : '' }}>{{ $cat }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        {{-- Panneau : nouvelle catégorie --}}
+                        <div id="panelNew" class="d-none">
+                            <input type="text" id="categoryNew"
+                                   class="form-control"
+                                   placeholder="Ex : Électronique, Vêtements..."
+                                   value="">
+                            <div class="form-text">
+                                <i class="bi bi-info-circle me-1"></i>
+                                Cette catégorie sera créée et disponible immédiatement dans la boutique.
                             </div>
                         </div>
+
                         @error('category')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                     </div>
                 </div>
@@ -233,13 +260,54 @@
         }
     });
 
-    document.getElementById('categoryNew').addEventListener('input', function() {
-        document.getElementById('categorySelect').value = '';
-        document.getElementsByName('category')[0].value = this.value;
-    });
-    document.getElementById('categorySelect').addEventListener('change', function() {
-        document.getElementById('categoryNew').value = '';
-    });
+    // ── Gestion onglets catégorie ──
+    const tabExisting  = document.getElementById('tabExisting');
+    const tabNew       = document.getElementById('tabNew');
+    const panelExisting= document.getElementById('panelExisting');
+    const panelNew     = document.getElementById('panelNew');
+    const catValue     = document.getElementById('categoryValue');
+    const catSelect    = document.getElementById('categorySelect');
+    const catNew       = document.getElementById('categoryNew');
+
+    function setTab(mode) {
+        if (mode === 'existing') {
+            panelExisting.classList.remove('d-none');
+            panelNew.classList.add('d-none');
+            tabExisting.style.background = 'var(--primary)'; tabExisting.style.color = '#fff';
+            tabNew.style.background = ''; tabNew.style.color = '';
+            tabNew.className = 'btn btn-sm btn-outline-secondary fw-600';
+            catValue.value = catSelect.value;
+        } else {
+            panelNew.classList.remove('d-none');
+            panelExisting.classList.add('d-none');
+            tabNew.style.background = 'var(--primary)'; tabNew.style.color = '#fff';
+            tabNew.className = 'btn btn-sm fw-600';
+            tabExisting.style.background = ''; tabExisting.style.color = '';
+            tabExisting.className = 'btn btn-sm btn-outline-secondary fw-600';
+            catValue.value = catNew.value.trim();
+        }
+    }
+
+    tabExisting.addEventListener('click', () => setTab('existing'));
+    tabNew.addEventListener('click',      () => setTab('new'));
+
+    // Sync en temps réel
+    catSelect.addEventListener('change', () => { catValue.value = catSelect.value; });
+    catNew.addEventListener('input',     () => { catValue.value = catNew.value.trim(); });
+
+    // Init : si old('category') est une valeur non listée → mode nouvelle
+    (function() {
+        const oldVal = catValue.value;
+        if (!oldVal) return;
+        const opts = Array.from(catSelect.options).map(o => o.value);
+        if (opts.includes(oldVal)) {
+            catSelect.value = oldVal;
+            setTab('existing');
+        } else {
+            catNew.value = oldVal;
+            setTab('new');
+        }
+    })();
 
     const stockInput = document.getElementById('stockInput');
     const stockBar   = document.getElementById('stockBar');
