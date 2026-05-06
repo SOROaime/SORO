@@ -1,58 +1,101 @@
 @extends('layouts.app')
-
 @section('title', 'Connexion')
 
 @section('content')
 
 <div class="auth-wrapper">
-    <div class="container py-5">
-        <div class="row justify-content-center">
-            <div class="col-md-5 col-lg-4">
+    <div class="container">
+        <div class="row justify-content-center align-items-center" style="min-height:calc(100vh - var(--navbar-h) - 60px);">
+            <div class="col-md-10 col-lg-9 col-xl-8">
+                <div class="auth-grid fade-in-up">
 
-                {{-- Logo & titre --}}
-                <div class="text-center mb-4 fade-in-up">
-                    <div class="auth-logo mx-auto mb-3">
-                        <i class="bi bi-bag-heart-fill"></i>
+                    {{-- ─── Panneau gauche (branding) ─── --}}
+                    <div class="auth-left d-none d-md-flex">
+                        <div class="auth-left-inner">
+                            <div class="auth-brand mb-auto">
+                                <div class="brand-icon-lg mb-3">
+                                    <i class="bi bi-bag-heart-fill"></i>
+                                </div>
+                                <div class="fw-900 mb-1" style="font-size:1.6rem;letter-spacing:-.05em;color:#fff;">
+                                    Shop<span style="color:var(--accent);">CI</span>
+                                </div>
+                                <div style="font-size:.82rem;color:rgba(255,255,255,.5);">
+                                    Votre boutique en ligne
+                                </div>
+                            </div>
+
+                            <div class="auth-features">
+                                @foreach([
+                                    ['bi-shield-check',     '#4ade80', 'Paiement sécurisé SSL'],
+                                    ['bi-truck-front-fill', '#60a5fa', 'Livraison gratuite'],
+                                    ['bi-arrow-repeat',     '#fbbf24', 'Retours sous 30 jours'],
+                                    ['bi-headset',          '#a78bfa', 'Support 7j/7'],
+                                ] as $f)
+                                <div class="auth-feature-item">
+                                    <i class="bi {{ $f[0] }}" style="color:{{ $f[1] }};font-size:1rem;flex-shrink:0;"></i>
+                                    <span>{{ $f[2] }}</span>
+                                </div>
+                                @endforeach
+                            </div>
+                        </div>
                     </div>
-                    <h2 class="fw-900 mb-1" style="letter-spacing:-.04em;">Connexion</h2>
-                    <p class="text-muted" style="font-size:.9rem;">Accédez à votre compte <strong>ShopCI</strong></p>
-                </div>
 
-                {{-- Card --}}
-                <div class="auth-card card fade-in-up-1">
-                    <div class="card-body p-4 p-sm-5">
+                    {{-- ─── Panneau droit (formulaire) ─── --}}
+                    <div class="auth-right">
+                        <div class="text-center mb-5">
+                            <div class="auth-logo-sm d-flex d-md-none mx-auto mb-3">
+                                <i class="bi bi-bag-heart-fill"></i>
+                            </div>
+                            <h2 class="fw-900 mb-1" style="letter-spacing:-.045em;font-size:1.7rem;">
+                                Bon retour ! 👋
+                            </h2>
+                            <p class="text-muted" style="font-size:.9rem;">
+                                Connectez-vous à votre compte <strong>ShopCI</strong>
+                            </p>
+                        </div>
+
                         <form action="{{ route('login') }}" method="POST" novalidate>
                             @csrf
 
+                            {{-- Erreur globale --}}
+                            @if($errors->any())
+                                <div class="alert alert-danger d-flex align-items-center gap-2 mb-4">
+                                    <i class="bi bi-exclamation-circle-fill flex-shrink-0"></i>
+                                    <span>{{ $errors->first() }}</span>
+                                </div>
+                            @endif
+
                             {{-- Email --}}
-                            <div class="mb-4">
+                            <div class="mb-3">
                                 <label for="email" class="form-label">
-                                    <i class="bi bi-envelope me-1 text-muted"></i>Adresse email
+                                    Adresse email
                                 </label>
-                                <input type="email"
-                                       class="form-control form-control-lg @error('email') is-invalid @enderror"
-                                       id="email" name="email"
-                                       value="{{ old('email') }}"
-                                       placeholder="votre@email.com"
-                                       autocomplete="email" autofocus>
-                                @error('email')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
+                                <div class="input-icon-group">
+                                    <i class="bi bi-envelope input-icon"></i>
+                                    <input type="email" id="email" name="email"
+                                           class="form-control form-control-lg ps-icon @error('email') is-invalid @enderror"
+                                           value="{{ old('email') }}"
+                                           placeholder="votre@email.com"
+                                           autocomplete="email" autofocus>
+                                    @error('email')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
                             </div>
 
                             {{-- Mot de passe --}}
                             <div class="mb-4">
                                 <label for="password" class="form-label">
-                                    <i class="bi bi-lock me-1 text-muted"></i>Mot de passe
+                                    Mot de passe
                                 </label>
-                                <div class="input-group">
-                                    <input type="password"
-                                           class="form-control form-control-lg @error('password') is-invalid @enderror"
-                                           id="password" name="password"
+                                <div class="input-icon-group">
+                                    <i class="bi bi-lock input-icon"></i>
+                                    <input type="password" id="password" name="password"
+                                           class="form-control form-control-lg ps-icon pe-icon @error('password') is-invalid @enderror"
                                            placeholder="••••••••"
                                            autocomplete="current-password">
-                                    <button class="btn btn-outline-secondary" type="button" id="togglePwd"
-                                            style="border-left:0;border-radius:0 10px 10px 0;">
+                                    <button type="button" class="input-icon-right" id="togglePwd"
+                                            tabindex="-1">
                                         <i class="bi bi-eye" id="eyeIcon"></i>
                                     </button>
                                     @error('password')
@@ -62,44 +105,52 @@
                             </div>
 
                             {{-- Se souvenir --}}
-                            <div class="d-flex align-items-center justify-content-between mb-4">
+                            <div class="d-flex align-items-center justify-content-between mb-5">
                                 <div class="form-check mb-0">
-                                    <input class="form-check-input" type="checkbox" name="remember" id="remember">
-                                    <label class="form-check-label text-muted" for="remember" style="font-size:.875rem;">
+                                    <input class="form-check-input" type="checkbox"
+                                           name="remember" id="remember">
+                                    <label class="form-check-label text-muted"
+                                           for="remember" style="font-size:.875rem;">
                                         Rester connecté
                                     </label>
                                 </div>
                             </div>
 
-                            <button type="submit" class="btn btn-primary btn-lg w-100 fw-700">
+                            <button type="submit"
+                                    class="btn btn-primary btn-lg w-100 fw-700 mb-4">
                                 <i class="bi bi-box-arrow-in-right"></i>Se connecter
                             </button>
                         </form>
-                    </div>
-                </div>
 
-                {{-- Lien inscription --}}
-                <p class="text-center text-muted mt-4" style="font-size:.9rem;">
-                    Pas encore de compte ?
-                    <a href="{{ route('register') }}" class="fw-700 text-decoration-none" style="color:var(--primary);">
-                        Créer un compte
-                    </a>
-                </p>
+                        <p class="text-center text-muted mb-4" style="font-size:.9rem;">
+                            Pas encore de compte ?
+                            <a href="{{ route('register') }}"
+                               class="fw-700 text-decoration-none"
+                               style="color:var(--primary);">
+                                Créer un compte
+                            </a>
+                        </p>
 
-                {{-- Démo admin --}}
-                <div class="demo-card fade-in-up-2">
-                    <div class="d-flex align-items-start gap-2">
-                        <i class="bi bi-info-circle-fill mt-1 flex-shrink-0" style="color:var(--primary);"></i>
-                        <div>
-                            <div class="fw-700 mb-1" style="font-size:.82rem;color:var(--primary);">Compte démo admin</div>
-                            <div style="font-size:.8rem;color:var(--text-muted);line-height:1.6;">
-                                Email : <code>admin@shopci.com</code><br>
-                                Mot de passe : <code>Admin123!</code>
+                        {{-- Démo admin --}}
+                        <div class="demo-card">
+                            <div class="d-flex align-items-start gap-2">
+                                <i class="bi bi-info-circle-fill flex-shrink-0 mt-1"
+                                   style="color:var(--primary);"></i>
+                                <div>
+                                    <div class="fw-700 mb-1"
+                                         style="font-size:.82rem;color:var(--primary);">
+                                        Compte démo administrateur
+                                    </div>
+                                    <div style="font-size:.8rem;color:var(--text-muted);line-height:1.8;">
+                                        Email : <code>admin@shopci.com</code><br>
+                                        Mot de passe : <code>Admin123!</code>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
+                </div>
             </div>
         </div>
     </div>
@@ -107,37 +158,126 @@
 
 @push('styles')
 <style>
+    footer { margin-top: 0 !important; }
+
     .auth-wrapper {
-        min-height: calc(100vh - 68px - 420px);
-        background: linear-gradient(160deg, #f8fafc 60%, #eff6ff 100%);
+        background: linear-gradient(160deg, #f8fafc 0%, var(--primary-xl) 100%);
+        padding: 2rem 0;
     }
-    .auth-logo {
-        width: 64px; height: 64px;
-        background: linear-gradient(135deg, var(--primary), var(--primary-d));
-        border-radius: 18px;
+
+    .auth-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: 0 8px 48px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.06);
+        border: 1px solid var(--border);
+        background: #fff;
+    }
+    @media (max-width: 767px) {
+        .auth-grid { grid-template-columns: 1fr; }
+    }
+
+    /* Panneau gauche */
+    .auth-left {
+        background: linear-gradient(145deg, var(--dark) 0%, var(--dark-2) 55%, #1a3060 100%);
+        padding: 2.5rem;
+        display: flex; flex-direction: column;
+        position: relative; overflow: hidden;
+    }
+    .auth-left::before {
+        content: '';
+        position: absolute;
+        width: 300px; height: 300px;
+        background: radial-gradient(circle, rgba(37,99,235,.2) 0%, transparent 70%);
+        top: -80px; right: -80px;
+        pointer-events: none;
+    }
+    .auth-left::after {
+        content: '';
+        position: absolute;
+        width: 200px; height: 200px;
+        background: radial-gradient(circle, rgba(245,158,11,.12) 0%, transparent 70%);
+        bottom: -60px; left: -40px;
+        pointer-events: none;
+    }
+    .auth-left-inner {
+        display: flex; flex-direction: column; height: 100%;
+        position: relative; z-index: 1;
+    }
+    .brand-icon-lg {
+        width: 52px; height: 52px;
+        background: linear-gradient(135deg, var(--accent), #fb923c);
+        border-radius: 15px;
         display: flex; align-items: center; justify-content: center;
-        font-size: 1.8rem; color: #fff;
-        box-shadow: 0 8px 24px rgba(37,99,235,.25);
+        color: #fff; font-size: 1.5rem;
+        box-shadow: 0 6px 20px rgba(245,158,11,.35);
     }
-    .auth-card {
-        border-radius: 20px !important;
-        box-shadow: 0 4px 32px rgba(0,0,0,.09), 0 1px 3px rgba(0,0,0,.05) !important;
-        border: 1px solid var(--border) !important;
+    .auth-features {
+        display: flex; flex-direction: column; gap: 12px;
+        margin-top: auto;
     }
+    .auth-feature-item {
+        display: flex; align-items: center; gap: 10px;
+        font-size: .84rem; font-weight: 500;
+        color: rgba(255,255,255,.7);
+        padding: .65rem .9rem;
+        background: rgba(255,255,255,.06);
+        border: 1px solid rgba(255,255,255,.1);
+        border-radius: 10px;
+    }
+
+    /* Panneau droit */
+    .auth-right {
+        padding: 2.5rem 2.5rem 2rem;
+        display: flex; flex-direction: column; justify-content: center;
+    }
+    @media (max-width: 575px) {
+        .auth-right { padding: 1.75rem 1.5rem; }
+    }
+
+    /* Logo mobile */
+    .auth-logo-sm {
+        width: 52px; height: 52px;
+        background: linear-gradient(135deg, var(--primary), var(--primary-d));
+        border-radius: 16px;
+        align-items: center; justify-content: center;
+        font-size: 1.5rem; color: #fff;
+        box-shadow: 0 6px 20px rgba(37,99,235,.28);
+    }
+
+    /* Champs avec icône */
+    .input-icon-group { position: relative; }
+    .input-icon {
+        position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+        color: var(--text-light); font-size: .95rem; pointer-events: none; z-index: 3;
+    }
+    .input-icon-right {
+        position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+        background: none; border: none; color: var(--text-light);
+        cursor: pointer; padding: 4px; z-index: 3;
+        transition: color .2s;
+        font-size: .95rem; line-height: 1;
+        display: flex; align-items: center;
+    }
+    .input-icon-right:hover { color: var(--primary); }
+    .ps-icon  { padding-left: 2.6rem !important; }
+    .pe-icon  { padding-right: 2.8rem !important; }
+
+    /* Démo card */
     .demo-card {
-        background: #eff6ff;
-        border: 1px solid rgba(37,99,235,.15);
+        background: var(--primary-xl);
+        border: 1px solid var(--primary-l);
         border-radius: 12px;
-        padding: 1rem 1.1rem;
-        margin-top: 1rem;
+        padding: .95rem 1.1rem;
     }
     .demo-card code {
-        background: rgba(37,99,235,.1);
+        background: var(--primary-l);
         color: var(--primary);
-        padding: .1em .4em;
-        border-radius: 4px;
-        font-size: .78rem;
-        font-weight: 700;
+        padding: .12em .45em;
+        border-radius: 5px;
+        font-size: .78rem; font-weight: 700;
+        font-family: 'SF Mono', 'Fira Code', monospace;
     }
 </style>
 @endpush
@@ -149,10 +289,10 @@
         const icon = document.getElementById('eyeIcon');
         if (pwd.type === 'password') {
             pwd.type = 'text';
-            icon.classList.replace('bi-eye', 'bi-eye-slash');
+            icon.className = 'bi bi-eye-slash';
         } else {
             pwd.type = 'password';
-            icon.classList.replace('bi-eye-slash', 'bi-eye');
+            icon.className = 'bi bi-eye';
         }
     });
 </script>
