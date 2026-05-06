@@ -168,14 +168,6 @@
                         </div>
                     </div>
 
-                    {{-- Historique stock --}}
-                    <div class="mt-3 p-3 rounded-3" style="background:#f8fafc;border:1px solid var(--border);">
-                        <div class="d-flex align-items-center gap-2 text-muted" style="font-size:.8rem;">
-                            <i class="bi bi-info-circle"></i>
-                            Le stock est automatiquement <strong>décrémenté</strong> lorsqu'une commande est validée,
-                            et <strong>restitué</strong> si le paiement échoue ou si la commande est annulée.
-                        </div>
-                    </div>
                 </div>
             </div>
 

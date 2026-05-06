@@ -149,14 +149,6 @@
                         </div>
                     </div>
 
-                    <div class="mt-3 p-3 rounded-3 d-flex gap-2 align-items-start"
-                         style="background:#f8fafc;border:1px solid var(--border);font-size:.8rem;color:var(--text-muted);">
-                        <i class="bi bi-arrow-repeat text-primary mt-1 flex-shrink-0"></i>
-                        <span>
-                            Le stock est <strong>décrémenté automatiquement</strong> lors d'une commande validée,
-                            et <strong>restitué</strong> si le paiement échoue ou si la commande est annulée.
-                        </span>
-                    </div>
                 </div>
             </div>
 
