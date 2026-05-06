@@ -10,7 +10,7 @@
             <div class="text-center mb-4">
                 <i class="bi bi-bag-heart-fill display-4 text-primary"></i>
                 <h2 class="fw-bold mt-2">Connexion</h2>
-                <p class="text-muted">Accédez à votre compte ShopLaravel</p>
+                <p class="text-muted">Accédez à votre compte ShopCI</p>
             </div>
 
             <div class="card border-0 rounded-4 shadow-sm">
@@ -85,7 +85,7 @@
             {{-- Compte demo --}}
             <div class="alert alert-info small mt-3">
                 <i class="bi bi-info-circle me-1"></i>
-                <strong>Démo admin :</strong> admin@shop.com / Admin123!
+                <strong>Démo admin :</strong> admin@shopci.com / Admin123!
             </div>
         </div>
     </div>

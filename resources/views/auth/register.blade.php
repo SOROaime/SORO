@@ -10,7 +10,7 @@
             <div class="text-center mb-4">
                 <i class="bi bi-person-plus-fill display-4 text-primary"></i>
                 <h2 class="fw-bold mt-2">Créer un compte</h2>
-                <p class="text-muted">Rejoignez ShopLaravel gratuitement</p>
+                <p class="text-muted">Rejoignez ShopCI gratuitement</p>
             </div>
 
             <div class="card border-0 rounded-4 shadow-sm">
@@ -51,6 +51,7 @@
                                 name="email"
                                 value="{{ old('email') }}"
                                 placeholder="votre@email.com"
+                                autocomplete="email"
                             >
                             @error('email')
                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -98,6 +99,56 @@
                             >
                         </div>
 
+                        {{-- ===================================================
+                             SECTION COMPTE ADMIN (facultative)
+                             Cocher la case révèle le champ clé secrète.
+                             Seul un responsable possédant la clé peut créer
+                             un compte administrateur depuis cette page.
+                        =================================================== --}}
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input
+                                    class="form-check-input"
+                                    type="checkbox"
+                                    id="isAdmin"
+                                    name="is_admin"
+                                    value="1"
+                                    {{ old('is_admin') ? 'checked' : '' }}
+                                >
+                                <label class="form-check-label fw-semibold text-secondary" for="isAdmin">
+                                    <i class="bi bi-shield-lock me-1"></i>
+                                    Je souhaite créer un compte administrateur
+                                </label>
+                            </div>
+                        </div>
+
+                        {{-- Champ clé secrète — masqué par défaut, visible si la case est cochée --}}
+                        <div class="mb-4" id="adminKeySection" style="display:none;">
+                            <div class="alert alert-warning py-2 small mb-2">
+                                <i class="bi bi-exclamation-triangle me-1"></i>
+                                Réservé aux responsables autorisés. Saisissez la clé fournie par l'administrateur principal.
+                            </div>
+                            <label for="admin_key" class="form-label fw-semibold">
+                                <i class="bi bi-key me-1"></i>Clé secrète d'administration
+                            </label>
+                            <div class="input-group">
+                                <input
+                                    type="password"
+                                    class="form-control form-control-lg @error('admin_key') is-invalid @enderror"
+                                    id="admin_key"
+                                    name="admin_key"
+                                    placeholder="Clé secrète"
+                                    autocomplete="off"
+                                >
+                                <button class="btn btn-outline-secondary" type="button" id="toggleKey">
+                                    <i class="bi bi-eye" id="eyeKeyIcon"></i>
+                                </button>
+                                @error('admin_key')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+
                         <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold">
                             <i class="bi bi-person-check me-2"></i>Créer mon compte
                         </button>
@@ -115,6 +166,7 @@
 
 @push('scripts')
 <script>
+    // Toggle affichage mot de passe principal
     document.getElementById('togglePwd').addEventListener('click', function () {
         const pwd  = document.getElementById('password');
         const icon = document.getElementById('eyeIcon');
@@ -126,6 +178,42 @@
             icon.classList.replace('bi-eye-slash', 'bi-eye');
         }
     });
+
+    // Toggle affichage clé secrète
+    document.getElementById('toggleKey').addEventListener('click', function () {
+        const key  = document.getElementById('admin_key');
+        const icon = document.getElementById('eyeKeyIcon');
+        if (key.type === 'password') {
+            key.type = 'text';
+            icon.classList.replace('bi-eye', 'bi-eye-slash');
+        } else {
+            key.type = 'password';
+            icon.classList.replace('bi-eye-slash', 'bi-eye');
+        }
+    });
+
+    // Afficher/masquer la section clé secrète selon la case à cocher
+    const isAdminCheckbox   = document.getElementById('isAdmin');
+    const adminKeySection   = document.getElementById('adminKeySection');
+    const adminKeyInput     = document.getElementById('admin_key');
+
+    function toggleAdminSection() {
+        if (isAdminCheckbox.checked) {
+            adminKeySection.style.display = 'block';
+            adminKeyInput.focus();
+        } else {
+            adminKeySection.style.display = 'none';
+            adminKeyInput.value = ''; // Effacer la clé si on décoche
+        }
+    }
+
+    isAdminCheckbox.addEventListener('change', toggleAdminSection);
+
+    // Afficher la section si une erreur de validation est retournée (old('is_admin'))
+    @if(old('is_admin'))
+        isAdminCheckbox.checked = true;
+        adminKeySection.style.display = 'block';
+    @endif
 </script>
 @endpush
 @endsection

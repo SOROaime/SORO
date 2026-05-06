@@ -17,6 +17,16 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Clé secrète d'inscription administrateur
+    |--------------------------------------------------------------------------
+    | Cette clé est utilisée pour vérifier qu'un utilisateur est autorisé
+    | à créer un compte administrateur depuis la page d'inscription publique.
+    | Modifiez ADMIN_REGISTRATION_KEY dans votre fichier .env.
+    */
+    'admin_registration_key' => env('ADMIN_REGISTRATION_KEY', null),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Environment
     |--------------------------------------------------------------------------
     |
