@@ -66,7 +66,7 @@ class Payment extends Model
 
     public function getFormattedAmountAttribute(): string
     {
-        return number_format($this->amount, 2, ',', ' ') . ' €';
+        return number_format($this->amount, 0, ',', ' ') . ' FCFA';
     }
 
     // ========================
@@ -91,8 +91,8 @@ class Payment extends Model
      */
     public static function processPayment(array $cardData): bool
     {
-        // Simulation : 90% de succès, 10% d'échec
+        // Simulation : toujours succès — accepte n'importe quelle carte
         // Dans la réalité : appel API Stripe, PayPal, etc.
-        return rand(1, 10) > 1;
+        return true;
     }
 }

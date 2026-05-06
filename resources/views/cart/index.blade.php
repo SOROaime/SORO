@@ -329,10 +329,10 @@
         @endforeach
     };
 
-    function formatEuro(amount) {
+    function formatFCFA(amount) {
         return new Intl.NumberFormat('fr-FR', {
-            style: 'currency', currency: 'EUR', minimumFractionDigits: 2
-        }).format(amount);
+            style: 'decimal', minimumFractionDigits: 0, maximumFractionDigits: 0
+        }).format(Math.round(amount)) + ' FCFA';
     }
 
     // ── Stepper +/- ──
@@ -363,17 +363,17 @@
         // Sous-total de la ligne
         const sub = unitPrices[itemId] * qty;
         const subEl = document.getElementById('subtotal-' + itemId);
-        if (subEl) subEl.textContent = formatEuro(sub);
+        if (subEl) subEl.textContent = formatFCFA(sub);
 
         // Label qty × prix
         const lblEl = document.getElementById('qty-label-' + itemId);
-        if (lblEl) lblEl.textContent = qty + ' × ' + formatEuro(unitPrices[itemId]);
+        if (lblEl) lblEl.textContent = qty + ' × ' + formatFCFA(unitPrices[itemId]);
 
         // Résumé latéral
         const sumQtyEl = document.getElementById('sum-qty-' + itemId);
         if (sumQtyEl) sumQtyEl.textContent = qty;
         const sumSubEl = document.getElementById('sum-sub-' + itemId);
-        if (sumSubEl) sumSubEl.textContent = formatEuro(sub);
+        if (sumSubEl) sumSubEl.textContent = formatFCFA(sub);
 
         recalcTotal();
 
@@ -393,8 +393,8 @@
         });
         const totalEl    = document.getElementById('cart-total');
         const subtotalEl = document.getElementById('cart-subtotal');
-        if (totalEl)    totalEl.textContent    = formatEuro(total);
-        if (subtotalEl) subtotalEl.textContent = formatEuro(total);
+        if (totalEl)    totalEl.textContent    = formatFCFA(total);
+        if (subtotalEl) subtotalEl.textContent = formatFCFA(total);
     }
 </script>
 @endpush

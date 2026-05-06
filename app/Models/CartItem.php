@@ -49,6 +49,6 @@ class CartItem extends Model
     /** Sous-total formaté */
     public function getFormattedSubtotalAttribute(): string
     {
-        return number_format($this->subtotal, 2, ',', ' ') . ' €';
+        return number_format($this->subtotal, 0, ',', ' ') . ' FCFA';
     }
 }

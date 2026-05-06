@@ -43,11 +43,11 @@ class OrderItem extends Model
 
     public function getFormattedUnitPriceAttribute(): string
     {
-        return number_format($this->unit_price, 2, ',', ' ') . ' €';
+        return number_format($this->unit_price, 0, ',', ' ') . ' FCFA';
     }
 
     public function getFormattedSubtotalAttribute(): string
     {
-        return number_format($this->subtotal, 2, ',', ' ') . ' €';
+        return number_format($this->subtotal, 0, ',', ' ') . ' FCFA';
     }
 }

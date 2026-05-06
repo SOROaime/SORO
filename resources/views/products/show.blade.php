@@ -357,10 +357,10 @@
     const unitPrice = {{ $product->price }};
     const maxStock  = {{ $product->stock }};
 
-    function formatEuro(amount) {
+    function formatFCFA(amount) {
         return new Intl.NumberFormat('fr-FR', {
-            style: 'currency', currency: 'EUR', minimumFractionDigits: 2
-        }).format(amount);
+            style: 'decimal', minimumFractionDigits: 0, maximumFractionDigits: 0
+        }).format(Math.round(amount)) + ' FCFA';
     }
 
     function updatePrice() {
@@ -376,9 +376,9 @@
 
         // Calcul du total
         const total = unitPrice * qty;
-        document.getElementById('pricePreview').textContent = formatEuro(total);
+        document.getElementById('pricePreview').textContent = formatFCFA(total);
         document.getElementById('qtyInfo').textContent =
-            qty + ' × ' + formatEuro(unitPrice);
+            qty + ' × ' + formatFCFA(unitPrice);
 
         // Animation flash sur la box
         const box = document.getElementById('pricePreviewBox');

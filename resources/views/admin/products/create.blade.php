@@ -84,7 +84,7 @@
                 <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
                     <h5 class="mb-0 fw-700 d-flex align-items-center gap-2">
                         <div style="width:32px;height:32px;background:#dcfce7;border-radius:9px;display:flex;align-items:center;justify-content:center;color:#16a34a;font-size:.9rem;">
-                            <i class="bi bi-currency-euro"></i>
+                            <i class="bi bi-cash-coin"></i>
                         </div>
                         Prix et stock
                         <span class="badge ms-2" style="background:#fef9c3;color:#854d0e;font-size:.68rem;font-weight:600;border-radius:6px;">
@@ -95,9 +95,9 @@
                 <div class="card-body px-4 pb-4 pt-3">
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="form-label">Prix (€) <span class="text-danger">*</span></label>
+                            <label class="form-label">Prix (FCFA) <span class="text-danger">*</span></label>
                             <div class="input-group">
-                                <span class="input-group-text"><i class="bi bi-currency-euro"></i></span>
+                                <span class="input-group-text fw-700" style="font-size:.78rem;">FCFA</span>
                                 <input type="number" name="price" step="0.01" min="0"
                                        class="form-control form-control-lg @error('price') is-invalid @enderror"
                                        value="{{ old('price') }}" placeholder="29.99">

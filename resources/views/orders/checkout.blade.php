@@ -99,7 +99,7 @@
                                 </label>
                                 <input type="text" name="shipping_postal_code"
                                        class="form-control @error('shipping_postal_code') is-invalid @enderror"
-                                       placeholder="75001" maxlength="5"
+                                       placeholder="00000" maxlength="10"
                                        value="{{ old('shipping_postal_code') }}">
                                 @error('shipping_postal_code')
                                     <div class="invalid-feedback">{{ $message }}</div>

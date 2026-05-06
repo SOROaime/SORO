@@ -50,10 +50,10 @@ class Product extends Model
     // ACCESSORS
     // ========================
 
-    /** Prix formaté en euros */
+    /** Prix formaté en FCFA */
     public function getFormattedPriceAttribute(): string
     {
-        return number_format($this->price, 2, ',', ' ') . ' €';
+        return number_format($this->price, 0, ',', ' ') . ' FCFA';
     }
 
     /** URL de l'image (image par défaut si non définie) */

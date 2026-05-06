@@ -17,7 +17,7 @@ class ProcessPaymentRequest extends FormRequest
             // Données de livraison
             'shipping_address'     => ['required', 'string', 'min:5'],
             'shipping_city'        => ['required', 'string', 'min:2'],
-            'shipping_postal_code' => ['required', 'string', 'regex:/^\d{5}$/'],
+            'shipping_postal_code' => ['required', 'string', 'min:4', 'max:10'],
             'notes'                => ['nullable', 'string', 'max:500'],
 
             // Données carte (simulées - jamais stockées en entier)
