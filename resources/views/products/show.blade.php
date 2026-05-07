@@ -249,6 +249,18 @@
                                class="btn btn-outline-secondary btn-lg px-3" title="Voir mon panier">
                                 <i class="bi bi-bag"></i>
                             </a>
+                            {{-- Bouton Favori --}}
+                            @php $isFavShow = \App\Models\Wishlist::isFavorite(auth()->id(), $product->id); @endphp
+                            <button type="button"
+                                    class="btn btn-lg px-3 btn-heart-show {{ $isFavShow ? 'active' : '' }}"
+                                    id="showFavBtn"
+                                    data-product-id="{{ $product->id }}"
+                                    data-toggle-url="{{ route('wishlist.toggle', $product) }}"
+                                    data-csrf="{{ csrf_token() }}"
+                                    title="{{ $isFavShow ? 'Retirer des favoris' : 'Ajouter aux favoris' }}">
+                                <i class="bi {{ $isFavShow ? 'bi-heart-fill' : 'bi-heart' }}"
+                                   style="font-size:1.2rem;"></i>
+                            </button>
                         </div>
                     </form>
 
@@ -349,6 +361,52 @@
         border-radius: 14px;
         padding: 1.15rem 1.4rem;
     }
+    /* Bouton cœur page produit */
+    .btn-heart-show {
+        border: 1.5px solid var(--border);
+        background: #f8fafc;
+        color: #cbd5e1;
+        border-radius: 12px;
+        transition: all .25s cubic-bezier(.175,.885,.32,1.275);
+        flex-shrink: 0;
+    }
+    .btn-heart-show:hover,
+    .btn-heart-show.active {
+        background: #fef2f2;
+        border-color: #fca5a5;
+        color: #ef4444;
+        transform: scale(1.08);
+        box-shadow: 0 4px 16px rgba(239,68,68,.22);
+    }
+    .btn-heart-show.active i {
+        animation: heartPop .35s ease;
+    }
+    @keyframes heartPop {
+        0%   { transform: scale(1); }
+        50%  { transform: scale(1.5); }
+        100% { transform: scale(1); }
+    }
+    /* Toast notification */
+    .fav-toast {
+        position: fixed;
+        bottom: 1.5rem; right: 1.5rem;
+        background: #1e293b;
+        color: #fff;
+        padding: .75rem 1.25rem;
+        border-radius: 12px;
+        font-size: .85rem;
+        font-weight: 600;
+        box-shadow: 0 8px 28px rgba(0,0,0,.25);
+        z-index: 9999;
+        display: flex; align-items: center; gap: .55rem;
+        transform: translateY(80px);
+        opacity: 0;
+        transition: all .3s cubic-bezier(.175,.885,.32,1.275);
+    }
+    .fav-toast.show {
+        transform: translateY(0);
+        opacity: 1;
+    }
 </style>
 @endpush
 
@@ -397,7 +455,71 @@
     }
 
     // Init au chargement
-    document.addEventListener('DOMContentLoaded', updatePrice);
+    document.addEventListener('DOMContentLoaded', () => {
+        updatePrice();
+        initFavBtn();
+    });
+
+    /* ── Bouton Favori AJAX ── */
+    function initFavBtn() {
+        const btn = document.getElementById('showFavBtn');
+        if (!btn) return;
+
+        btn.addEventListener('click', function () {
+            const url   = this.dataset.toggleUrl;
+            const csrf  = this.dataset.csrf;
+            const icon  = this.querySelector('i');
+            const isNowFav = !this.classList.contains('active');
+
+            // Toggle visuel immédiat
+            this.classList.toggle('active', isNowFav);
+            icon.className = isNowFav ? 'bi bi-heart-fill' : 'bi bi-heart';
+            icon.style.fontSize = '1.2rem';
+            this.title = isNowFav ? 'Retirer des favoris' : 'Ajouter aux favoris';
+
+            // Requête AJAX
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrf,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({})
+            })
+            .then(r => r.json())
+            .then(data => {
+                // Mise à jour du compteur dans la navbar
+                const badge = document.getElementById('navFavCount');
+                if (badge) {
+                    badge.textContent = data.count;
+                    badge.style.display = data.count > 0 ? 'flex' : 'none';
+                }
+                showFavToast(data.added
+                    ? '❤️ Ajouté aux favoris'
+                    : '🤍 Retiré des favoris');
+            })
+            .catch(() => {
+                // Revert si erreur réseau
+                this.classList.toggle('active', !isNowFav);
+                icon.className = !isNowFav ? 'bi bi-heart-fill' : 'bi bi-heart';
+            });
+        });
+    }
+
+    function showFavToast(msg) {
+        let toast = document.getElementById('favToast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'favToast';
+            toast.className = 'fav-toast';
+            document.body.appendChild(toast);
+        }
+        toast.textContent = msg;
+        toast.classList.add('show');
+        clearTimeout(toast._timer);
+        toast._timer = setTimeout(() => toast.classList.remove('show'), 2500);
+    }
 </script>
 @endpush
 @endsection

@@ -69,4 +69,16 @@ class User extends Authenticatable
     {
         return $this->hasMany(Order::class);
     }
+
+    /** Favoris de l'utilisateur */
+    public function wishlists()
+    {
+        return $this->hasMany(Wishlist::class);
+    }
+
+    /** IDs des produits favoris (pour vérification rapide) */
+    public function getFavoriteIdsAttribute(): array
+    {
+        return $this->wishlists()->pluck('product_id')->toArray();
+    }
 }

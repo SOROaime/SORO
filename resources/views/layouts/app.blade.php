@@ -889,6 +889,26 @@
             <ul class="navbar-nav ms-auto align-items-center gap-2">
 
                 @auth
+                    {{-- Favoris --}}
+                    @php $favCount = \App\Models\Wishlist::where('user_id', auth()->id())->count(); @endphp
+                    <li class="nav-item">
+                        <a href="{{ route('wishlist.index') }}" class="cart-btn" id="navFavBtn"
+                           title="Mes favoris"
+                           style="{{ request()->routeIs('wishlist.*') ? 'background:rgba(239,68,68,.18);border-color:rgba(239,68,68,.35);color:#ef4444 !important;' : '' }}">
+                            <i class="bi bi-heart{{ request()->routeIs('wishlist.*') ? '-fill' : '' }}"
+                               style="font-size:1.05rem;{{ request()->routeIs('wishlist.*') ? 'color:#ef4444;' : '' }}"></i>
+                            @if($favCount > 0)
+                                <span class="cart-count"
+                                      style="background:#ef4444;" id="navFavCount">
+                                    {{ $favCount > 99 ? '99+' : $favCount }}
+                                </span>
+                            @else
+                                <span class="cart-count" id="navFavCount"
+                                      style="background:#ef4444;display:none;">0</span>
+                            @endif
+                        </a>
+                    </li>
+
                     {{-- Panier --}}
                     <li class="nav-item">
                         <a href="{{ route('cart.index') }}" class="cart-btn" title="Mon panier">
@@ -939,6 +959,20 @@
                                         <span class="badge ms-auto"
                                               style="background:var(--primary-l);color:var(--primary);font-size:.66rem;">
                                             {{ $cartCount }}
+                                        </span>
+                                    @endif
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{{ route('wishlist.index') }}">
+                                    <div class="di-icon" style="background:#fef2f2;color:#ef4444;">
+                                        <i class="bi bi-heart-fill"></i>
+                                    </div>
+                                    Mes Favoris
+                                    @if($favCount > 0)
+                                        <span class="badge ms-auto"
+                                              style="background:#fee2e2;color:#dc2626;font-size:.66rem;">
+                                            {{ $favCount }}
                                         </span>
                                     @endif
                                 </a>

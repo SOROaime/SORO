@@ -6,6 +6,7 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\WishlistController;
 use Illuminate\Support\Facades\Route;
 
 // ============================================================
@@ -52,6 +53,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/commande/{order}', [OrderController::class, 'show'])->name('orders.show');
     Route::get('/checkout', [OrderController::class, 'checkout'])->name('orders.checkout');
     Route::post('/commande/{order}/annuler', [OrderController::class, 'cancel'])->name('orders.cancel');
+
+    // --- FAVORIS ---
+    Route::get('/favoris', [WishlistController::class, 'index'])->name('wishlist.index');
+    Route::post('/favoris/{product}/toggle', [WishlistController::class, 'toggle'])->name('wishlist.toggle');
 
     // --- PAIEMENT ---
     Route::post('/paiement/traiter', [PaymentController::class, 'process'])->name('payment.process');
