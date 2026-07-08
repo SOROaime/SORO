@@ -49,6 +49,13 @@ EOF
 chown www-data:www-data /var/www/html/.env
 chmod 640 /var/www/html/.env
 
+# Vérifier le .env créé
+echo "=== .env DB config ==="
+grep "^DB_" /var/www/html/.env
+
+# Vider le cache de config AVANT migrate
+php artisan config:clear 2>/dev/null || true
+
 # Migrations
 php artisan migrate --force 2>/dev/null || true
 
