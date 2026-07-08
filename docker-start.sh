@@ -59,6 +59,9 @@ php artisan config:clear 2>/dev/null || true
 # Migrations
 php artisan migrate --force 2>/dev/null || true
 
+# Créer le compte admin si absent
+php artisan make:admin --name="Admin" --email="admin@shopci.com" --password="Admin123!" 2>/dev/null || true
+
 # Optimiser
 php artisan config:cache 2>/dev/null || true
 php artisan route:cache 2>/dev/null || true
