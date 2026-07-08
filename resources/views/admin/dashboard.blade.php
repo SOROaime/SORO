@@ -9,18 +9,23 @@
 @section('content')
 
 {{-- TITRE --}}
-<div class="d-flex justify-content-between align-items-center mb-5">
+<div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-4">
     <div>
-        <h1 class="fw-900 mb-1" style="font-size:1.8rem;letter-spacing:-.04em;">Tableau de bord</h1>
-        <p class="text-muted mb-0" style="font-size:.88rem;">
+        <h1 class="fw-900 mb-1" style="font-size:1.5rem;letter-spacing:-.04em;">Tableau de bord</h1>
+        <p class="text-muted mb-0" style="font-size:.85rem;">
             Bonjour, <strong style="color:var(--dark);">{{ auth()->user()->name }}</strong> —
             <span class="live-dot d-inline-block mx-1"></span>
             {{ now()->format('d/m/Y \à H:i') }}
         </p>
     </div>
-    <a href="{{ route('admin.products.create') }}" class="btn btn-primary fw-600">
-        <i class="bi bi-plus-lg me-2"></i>Nouveau produit
-    </a>
+    <div class="d-flex gap-2 flex-wrap">
+        <a href="{{ route('admin.reports') }}" class="btn btn-success btn-sm fw-700">
+            <i class="bi bi-bar-chart-line me-1"></i><span class="d-none d-sm-inline">Rapports & </span>Stats
+        </a>
+        <a href="{{ route('admin.products.create') }}" class="btn btn-primary btn-sm fw-600">
+            <i class="bi bi-plus-lg me-1"></i><span class="d-none d-sm-inline">Nouveau </span>produit
+        </a>
+    </div>
 </div>
 
 {{-- ═══ CARTES STATS ═══ --}}
@@ -41,26 +46,26 @@
     ]; @endphp
 
     @foreach($statCards as $card)
-    <div class="col-sm-6 col-xl-3">
+    <div class="col-6 col-xl-3">
         <div class="card stat-card h-100" style="transition:transform .2s,box-shadow .2s;"
              onmouseenter="this.style.transform='translateY(-3px)';this.style.boxShadow='0 8px 28px rgba(0,0,0,.1)'"
              onmouseleave="this.style.transform='';this.style.boxShadow=''">
-            <div class="card-body p-4">
+            <div class="card-body p-3">
                 <div class="d-flex justify-content-between align-items-start">
-                    <div class="flex-grow-1">
-                        <div class="text-muted fw-600 mb-2"
-                             style="font-size:.7rem;text-transform:uppercase;letter-spacing:.1em;">
+                    <div class="flex-grow-1 min-w-0">
+                        <div class="text-muted fw-600 mb-1"
+                             style="font-size:.65rem;text-transform:uppercase;letter-spacing:.08em;">
                             {{ $card['label'] }}
                         </div>
-                        <div class="fw-900 mb-1"
-                             style="font-size:1.85rem;letter-spacing:-.05em;color:var(--dark);line-height:1;">
+                        <div class="fw-900 mb-1 text-truncate"
+                             style="font-size:1.3rem;letter-spacing:-.04em;color:var(--dark);line-height:1.2;">
                             {{ $card['value'] }}
                         </div>
-                        <div class="text-muted" style="font-size:.75rem;">{{ $card['sub'] }}</div>
+                        <div class="text-muted text-truncate" style="font-size:.7rem;">{{ $card['sub'] }}</div>
                     </div>
-                    <div style="width:48px;height:48px;border-radius:14px;
+                    <div class="d-none d-sm-flex ms-2" style="width:40px;height:40px;border-radius:12px;
                                 background:{{ $card['bg'] }};color:{{ $card['color'] }};
-                                font-size:1.3rem;display:flex;align-items:center;justify-content:center;
+                                font-size:1.1rem;align-items:center;justify-content:center;
                                 flex-shrink:0;">
                         <i class="bi {{ $card['icon'] }}"></i>
                     </div>
@@ -94,14 +99,14 @@
                     </div>
                 @else
                     <div class="table-responsive">
-                        <table class="table table-hover mb-0">
+                        <table class="table table-hover mb-0" style="font-size:.83rem;">
                             <thead>
                                 <tr>
-                                    <th class="ps-4">N° Commande</th>
-                                    <th>Client</th>
+                                    <th class="ps-3">N° Commande</th>
+                                    <th class="d-none d-md-table-cell">Client</th>
                                     <th>Total</th>
                                     <th>Statut</th>
-                                    <th>Date</th>
+                                    <th class="d-none d-sm-table-cell">Date</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -113,31 +118,40 @@
                                            'shipped'=>'#ede9fe','delivered'=>'#dcfce7','cancelled'=>'#fee2e2'];
                                 @endphp
                                 <tr>
-                                    <td class="ps-4">
+                                    <td class="ps-3">
                                         <a href="{{ route('admin.orders.show', $order) }}"
                                            class="fw-700 text-decoration-none"
-                                           style="color:var(--primary);">{{ $order->order_number }}</a>
+                                           style="color:var(--primary);font-size:.78rem;">
+                                           {{ $order->order_number }}
+                                        </a>
+                                        {{-- Sur mobile : afficher le client sous le numéro --}}
+                                        <div class="d-md-none text-muted" style="font-size:.72rem;">
+                                            {{ $order->user->name }}
+                                        </div>
                                     </td>
-                                    <td>
+                                    <td class="d-none d-md-table-cell">
                                         <div class="d-flex align-items-center gap-2">
-                                            <div style="width:28px;height:28px;border-radius:50%;
+                                            <div style="width:26px;height:26px;border-radius:50%;
                                                         background:linear-gradient(135deg,var(--primary),var(--primary-d));
                                                         display:flex;align-items:center;justify-content:center;
-                                                        font-size:.68rem;font-weight:800;color:#fff;flex-shrink:0;">
+                                                        font-size:.65rem;font-weight:800;color:#fff;flex-shrink:0;">
                                                 {{ strtoupper(substr($order->user->name,0,1)) }}
                                             </div>
                                             <span>{{ $order->user->name }}</span>
                                         </div>
                                     </td>
-                                    <td class="fw-700" style="color:var(--primary);">{{ $order->formatted_total }}</td>
+                                    <td class="fw-700" style="color:var(--primary);white-space:nowrap;">
+                                        {{ $order->formatted_total }}
+                                    </td>
                                     <td>
-                                        <span style="padding:.25em .8em;border-radius:20px;font-size:.72rem;font-weight:700;
+                                        <span style="padding:.2em .6em;border-radius:20px;font-size:.68rem;font-weight:700;
+                                                     white-space:nowrap;
                                                      background:{{ $sb[$order->status] ?? '#f1f5f9' }};
                                                      color:{{ $sc[$order->status] ?? '#64748b' }};">
                                             {{ $order->status_label }}
                                         </span>
                                     </td>
-                                    <td class="text-muted" style="font-size:.82rem;">
+                                    <td class="d-none d-sm-table-cell text-muted" style="font-size:.78rem;">
                                         {{ $order->created_at->format('d/m/Y') }}
                                     </td>
                                 </tr>
@@ -216,6 +230,10 @@
                 </a>
                 <a href="{{ route('admin.users.index') }}" class="btn btn-outline-secondary btn-sm fw-600">
                     <i class="bi bi-people me-2"></i>Gérer les utilisateurs
+                </a>
+                <a href="{{ route('admin.reports') }}" class="btn btn-sm fw-700"
+                   style="background:#dcfce7;color:#16a34a;border:1px solid #bbf7d0;">
+                    <i class="bi bi-bar-chart-line me-2"></i>Rapports & Stats
                 </a>
                 <a href="{{ route('home') }}" class="btn btn-outline-secondary btn-sm fw-600" target="_blank">
                     <i class="bi bi-shop me-2"></i>Voir la boutique

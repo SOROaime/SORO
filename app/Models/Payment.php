@@ -28,17 +28,19 @@ class Payment extends Model
     ];
 
     const STATUS_LABELS = [
-        'pending'  => 'En attente',
-        'success'  => 'Réussi',
-        'failed'   => 'Échoué',
-        'refunded' => 'Remboursé',
+        'pending'   => 'En attente',
+        'success'   => 'Réussi',
+        'failed'    => 'Échoué',
+        'cancelled' => 'Annulée',
+        'refunded'  => 'Remboursé',
     ];
 
     const STATUS_COLORS = [
-        'pending'  => 'warning',
-        'success'  => 'success',
-        'failed'   => 'danger',
-        'refunded' => 'secondary',
+        'pending'   => 'warning',
+        'success'   => 'success',
+        'failed'    => 'danger',
+        'cancelled' => 'secondary',
+        'refunded'  => 'secondary',
     ];
 
     // ========================

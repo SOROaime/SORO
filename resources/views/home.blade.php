@@ -1,5 +1,7 @@
 @extends('layouts.app')
 @section('title', 'Accueil')
+@section('seo_title', 'ShopCI — Boutique en ligne Cote d\'Ivoire | Livraison gratuite')
+@section('seo_description', 'Achetez en ligne en Cote d\'Ivoire sur ShopCI. Plus de 500 produits, livraison gratuite, paiement securise via Orange Money, MTN Money, Wave. Paiement en 2x, 3x, 4x sans frais.')
 
 @section('content')
 
@@ -57,26 +59,11 @@
 
             <div class="col-lg-5 fade-in-up-2 d-none d-lg-flex justify-content-end">
                 <div class="hero-visual">
-                    <div class="hero-card">
-                        <div class="hero-card-icon">
-                            <i class="bi bi-bag-heart-fill"></i>
-                        </div>
-                        <div>
-                            <div style="font-size:.72rem;color:rgba(255,255,255,.55);font-weight:600;">Commande confirmée</div>
-                            <div style="font-size:.9rem;font-weight:700;color:#fff;">Livraison gratuite !</div>
-                        </div>
-                        <span style="font-size:1.1rem;">🎉</span>
-                    </div>
-                    <div class="hero-card" style="animation-delay:.4s;">
-                        <div class="hero-card-icon" style="background:rgba(34,197,94,.2);">
-                            <i class="bi bi-shield-check" style="color:#4ade80;"></i>
-                        </div>
-                        <div>
-                            <div style="font-size:.72rem;color:rgba(255,255,255,.55);font-weight:600;">Paiement</div>
-                            <div style="font-size:.9rem;font-weight:700;color:#fff;">100% sécurisé</div>
-                        </div>
-                        <span style="font-size:1.1rem;">🔒</span>
-                    </div>
+                    {{-- Photo de deux personnes heureuses --}}
+                    <img src="{{ asset('images/hero-people.jpg') }}"
+                         alt="Clients satisfaits"
+                         class="hero-people-img"
+                         onerror="this.src='https://picsum.photos/380/480?grayscale=false&random=42'">
                 </div>
             </div>
         </div>
@@ -156,7 +143,7 @@
     </div>
 
     @if(isset($featuredProducts) && $featuredProducts->isNotEmpty())
-        <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-4">
+        <div class="row row-cols-2 row-cols-sm-2 row-cols-lg-4 g-2 g-sm-4">
             @foreach($featuredProducts as $product)
                 <div class="col fade-in-up">
                     @include('components.product-card', ['product' => $product])
@@ -240,29 +227,24 @@
 <style>
     /* ── Hero Visual ── */
     .hero-visual {
-        display: flex; flex-direction: column; gap: 12px;
-        position: relative; z-index: 1;
+        position: relative;
+        z-index: 1;
+        width: 380px;
+        height: 480px;
     }
-    .hero-card {
-        display: flex; align-items: center; gap: 14px;
-        background: rgba(255,255,255,.08);
-        border: 1px solid rgba(255,255,255,.14);
-        border-radius: 16px;
-        padding: 1rem 1.25rem;
-        backdrop-filter: blur(16px);
-        animation: fadeInUp .5s ease both;
-        min-width: 260px;
-        transition: transform .3s;
+    .hero-people-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 28px;
+        box-shadow: 0 24px 60px rgba(0,0,0,.35);
+        display: block;
+        animation: floatPhoto 4s ease-in-out infinite;
     }
-    .hero-card:hover { transform: translateY(-3px); }
-    .hero-card-icon {
-        width: 40px; height: 40px;
-        border-radius: 11px;
-        background: rgba(245,158,11,.2);
-        display: flex; align-items: center; justify-content: center;
-        font-size: 1.1rem;
-        color: var(--accent);
-        flex-shrink: 0;
+    @keyframes floatPhoto {
+        0%   { transform: translateY(0px); }
+        50%  { transform: translateY(-14px); }
+        100% { transform: translateY(0px); }
     }
 
     /* ── Hero Stats ── */

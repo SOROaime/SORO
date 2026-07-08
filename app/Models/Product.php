@@ -59,11 +59,18 @@ class Product extends Model
     /** URL de l'image (image par défaut si non définie) */
     public function getImageUrlAttribute(): string
     {
-        if ($this->image && file_exists(public_path('storage/' . $this->image))) {
+        if (!$this->image) {
+            return 'https://placehold.co/400x280/e2e8f0/94a3b8?text=' . urlencode($this->name ?? 'Produit');
+        }
+        // URL externe directe (Unsplash, etc.)
+        if (str_starts_with($this->image, 'http')) {
+            return $this->image;
+        }
+        // Fichier uploadé dans storage
+        if (file_exists(public_path('storage/' . $this->image))) {
             return asset('storage/' . $this->image);
         }
-        // Placeholder externe en HTTPS (pas de mixed content)
-        return 'https://placehold.co/400x220/e2e8f0/94a3b8?text=' . urlencode($this->name ?? 'Produit');
+        return 'https://placehold.co/400x280/e2e8f0/94a3b8?text=' . urlencode($this->name ?? 'Produit');
     }
 
     /** Vérifie si le produit est disponible */
@@ -86,5 +93,23 @@ class Product extends Model
     public function orderItems()
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    /** Avis clients */
+    public function reviews()
+    {
+        return $this->hasMany(Review::class)->latest();
+    }
+
+    /** Note moyenne (0 si aucun avis) */
+    public function getAvgRatingAttribute(): float
+    {
+        return round($this->reviews()->avg('rating') ?? 0, 1);
+    }
+
+    /** Nombre d'avis */
+    public function getReviewsCountAttribute(): int
+    {
+        return $this->reviews()->count();
     }
 }

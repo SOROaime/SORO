@@ -62,7 +62,7 @@
                         <form action="{{ route('register') }}" method="POST" novalidate>
                             @csrf
 
-                            @if($errors->any() && !$errors->has('name') && !$errors->has('email') && !$errors->has('password') && !$errors->has('admin_key'))
+                            @if($errors->any() && !$errors->has('name') && !$errors->has('email') && !$errors->has('phone') && !$errors->has('password') && !$errors->has('admin_key'))
                                 <div class="alert alert-danger d-flex align-items-center gap-2 mb-3">
                                     <i class="bi bi-exclamation-circle-fill flex-shrink-0"></i>
                                     <span>{{ $errors->first() }}</span>
@@ -96,6 +96,22 @@
                                            placeholder="votre@email.com"
                                            autocomplete="email">
                                     @error('email')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+
+                            {{-- Téléphone --}}
+                            <div class="mb-3">
+                                <label for="phone" class="form-label">Numéro de téléphone</label>
+                                <div class="input-icon-group">
+                                    <i class="bi bi-telephone input-icon"></i>
+                                    <input type="tel" id="phone" name="phone"
+                                           class="form-control form-control-lg ps-icon @error('phone') is-invalid @enderror"
+                                           value="{{ old('phone') }}"
+                                           placeholder="07 XX XX XX XX"
+                                           autocomplete="tel">
+                                    @error('phone')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
@@ -138,52 +154,6 @@
                                     <button type="button" class="input-icon-right" id="togglePwd2" tabindex="-1">
                                         <i class="bi bi-eye" id="eyeIcon2"></i>
                                     </button>
-                                </div>
-                            </div>
-
-                            {{-- Séparateur --}}
-                            <div class="divider-section mb-3">
-                                <span>Options avancées</span>
-                            </div>
-
-                            {{-- Toggle admin --}}
-                            <div class="admin-toggle mb-2" id="adminToggleBox">
-                                <div class="form-check d-flex align-items-center gap-2 mb-0">
-                                    <input class="form-check-input mt-0" type="checkbox"
-                                           id="isAdmin" name="is_admin" value="1"
-                                           {{ old('is_admin') ? 'checked' : '' }}>
-                                    <label class="form-check-label mb-0 fw-600"
-                                           for="isAdmin"
-                                           style="font-size:.875rem;cursor:pointer;">
-                                        <i class="bi bi-shield-lock me-1"
-                                           style="color:var(--accent);"></i>
-                                        Compte administrateur
-                                    </label>
-                                </div>
-                            </div>
-
-                            {{-- Clé admin --}}
-                            <div id="adminKeySection"
-                                 style="display:none;"
-                                 class="mb-3">
-                                <div class="admin-key-warning mb-2">
-                                    <i class="bi bi-exclamation-triangle-fill me-2"
-                                       style="color:var(--accent);"></i>
-                                    Réservé aux responsables autorisés. Clé fournie par l'administrateur.
-                                </div>
-                                <div class="input-icon-group">
-                                    <i class="bi bi-key input-icon"></i>
-                                    <input type="password" id="admin_key" name="admin_key"
-                                           class="form-control form-control-lg ps-icon pe-icon @error('admin_key') is-invalid @enderror"
-                                           placeholder="Clé secrète"
-                                           autocomplete="off">
-                                    <button type="button" class="input-icon-right"
-                                            id="toggleKey" tabindex="-1">
-                                        <i class="bi bi-eye" id="eyeKeyIcon"></i>
-                                    </button>
-                                    @error('admin_key')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
                                 </div>
                             </div>
 
@@ -318,32 +288,6 @@
     .ps-icon { padding-left: 2.6rem !important; }
     .pe-icon { padding-right: 2.8rem !important; }
 
-    /* Divider */
-    .divider-section {
-        display: flex; align-items: center; gap: 10px;
-        color: var(--text-muted); font-size: .72rem;
-        font-weight: 600; text-transform: uppercase; letter-spacing: .07em;
-    }
-    .divider-section::before, .divider-section::after {
-        content: ''; flex: 1; height: 1px; background: var(--border);
-    }
-
-    /* Admin toggle */
-    .admin-toggle {
-        background: var(--accent-l);
-        border: 1.5px solid rgba(245,158,11,.22);
-        border-radius: 11px;
-        padding: .85rem 1rem;
-    }
-    .admin-key-warning {
-        background: #fffbeb;
-        border: 1px solid rgba(245,158,11,.3);
-        border-radius: 9px;
-        padding: .65rem .9rem;
-        font-size: .79rem; font-weight: 600;
-        color: #92400e;
-        display: flex; align-items: flex-start;
-    }
 </style>
 @endpush
 
@@ -360,29 +304,6 @@
     }
     makeToggle('togglePwd',  'password', 'eyeIcon');
     makeToggle('togglePwd2', 'password_confirmation', 'eyeIcon2');
-    makeToggle('toggleKey',  'admin_key', 'eyeKeyIcon');
-
-    /* Section clé admin */
-    const isAdminChk      = document.getElementById('isAdmin');
-    const adminKeySection = document.getElementById('adminKeySection');
-    const adminKeyInput   = document.getElementById('admin_key');
-
-    function toggleAdminSection() {
-        if (isAdminChk.checked) {
-            adminKeySection.style.display  = 'block';
-            adminKeySection.style.animation = 'fadeInUp .3s ease';
-            adminKeyInput.focus();
-        } else {
-            adminKeySection.style.display = 'none';
-            adminKeyInput.value = '';
-        }
-    }
-    isAdminChk.addEventListener('change', toggleAdminSection);
-
-    @if(old('is_admin'))
-        isAdminChk.checked = true;
-        adminKeySection.style.display = 'block';
-    @endif
 </script>
 @endpush
 @endsection

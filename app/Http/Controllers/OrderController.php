@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Cart;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Notifications\OrderStatusNotification;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 /**
  * OrderController — Gestion des commandes
@@ -34,7 +36,7 @@ class OrderController extends Controller
             abort(403);
         }
 
-        $order->load('items.product', 'payment', 'user');
+        $order->load('items.product', 'payment', 'user', 'installments');
 
         return view('orders.show', compact('order'));
     }
@@ -84,8 +86,26 @@ class OrderController extends Controller
             return back()->with('error', 'Cette commande ne peut plus être annulée.');
         }
 
-        $order->update(['status' => 'cancelled']);
+        DB::transaction(function () use ($order) {
+            $order->restoreStock();
+            $order->update(['status' => 'cancelled']);
+            $order->load('payment');
+            if ($order->payment && in_array($order->payment->status, ['pending'])) {
+                $order->payment->update([
+                    'status'         => 'cancelled',
+                    'failure_reason' => 'Commande annulée par le client.',
+                ]);
+            }
+        });
 
-        return back()->with('success', "La commande #{$order->order_number} a été annulée.");
+        // Envoyer l'email de confirmation d'annulation
+        try {
+            $order->load('user', 'items', 'payment');
+            $order->user->notify(new OrderStatusNotification($order));
+        } catch (\Exception $e) {
+            report($e);
+        }
+
+        return back()->with('success', "La commande #{$order->order_number} a été annulée. Un email de confirmation vous a été envoyé.");
     }
 }

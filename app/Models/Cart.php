@@ -81,6 +81,13 @@ class Cart extends Model
     /** Marque le panier comme converti en commande */
     public function markAsConverted(): void
     {
+        // Supprimer les anciens paniers de cet utilisateur (converted ou abandoned)
+        // pour éviter la violation de contrainte unique (user_id, status).
+        self::where('user_id', $this->user_id)
+            ->where('id', '!=', $this->id)
+            ->whereIn('status', ['converted', 'abandoned'])
+            ->delete();
+
         $this->update(['status' => 'converted']);
     }
 }

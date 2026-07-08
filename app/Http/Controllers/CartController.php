@@ -78,19 +78,35 @@ class CartController extends Controller
     /** Mettre à jour la quantité d'un article */
     public function update(Request $request, CartItem $cartItem)
     {
-        // Sécurité : vérifier que l'article appartient au panier de l'utilisateur
         $this->authorizeCartItem($cartItem);
 
         $request->validate([
             'quantity' => ['required', 'integer', 'min:1', 'max:99'],
         ]);
 
-        // Vérifier le stock
         if ($cartItem->product->stock < $request->quantity) {
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'ok'      => false,
+                    'message' => "Stock insuffisant. Maximum : {$cartItem->product->stock}.",
+                    'max'     => $cartItem->product->stock,
+                ], 422);
+            }
             return back()->with('error', "Stock insuffisant. Maximum : {$cartItem->product->stock}.");
         }
 
         $cartItem->update(['quantity' => $request->quantity]);
+
+        if ($request->wantsJson()) {
+            // Recharger le panier pour calculer le nouveau total
+            $cart = $cartItem->cart()->with('items.product')->first();
+            return response()->json([
+                'ok'       => true,
+                'subtotal' => $cartItem->fresh()->formatted_subtotal,
+                'total'    => $cart->formatted_total,
+                'count'    => $cart->items->sum('quantity'),
+            ]);
+        }
 
         return back()->with('success', 'Quantité mise à jour.');
     }

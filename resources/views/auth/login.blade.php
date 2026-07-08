@@ -76,7 +76,7 @@
                                            class="form-control form-control-lg ps-icon @error('email') is-invalid @enderror"
                                            value="{{ old('email') }}"
                                            placeholder="votre@email.com"
-                                           autocomplete="email" autofocus>
+                                           autocomplete="off" autofocus>
                                     @error('email')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
@@ -93,7 +93,7 @@
                                     <input type="password" id="password" name="password"
                                            class="form-control form-control-lg ps-icon pe-icon @error('password') is-invalid @enderror"
                                            placeholder="••••••••"
-                                           autocomplete="current-password">
+                                           autocomplete="off">
                                     <button type="button" class="input-icon-right" id="togglePwd"
                                             tabindex="-1">
                                         <i class="bi bi-eye" id="eyeIcon"></i>
@@ -104,7 +104,7 @@
                                 </div>
                             </div>
 
-                            {{-- Se souvenir --}}
+                            {{-- Se souvenir + mot de passe oublié --}}
                             <div class="d-flex align-items-center justify-content-between mb-5">
                                 <div class="form-check mb-0">
                                     <input class="form-check-input" type="checkbox"
@@ -114,6 +114,10 @@
                                         Rester connecté
                                     </label>
                                 </div>
+                                <a href="{{ route('password.request') }}"
+                                   class="text-decoration-none" style="font-size:.875rem;color:var(--primary);font-weight:600;">
+                                    Mot de passe oublié ?
+                                </a>
                             </div>
 
                             <button type="submit"
@@ -131,23 +135,6 @@
                             </a>
                         </p>
 
-                        {{-- Démo admin --}}
-                        <div class="demo-card">
-                            <div class="d-flex align-items-start gap-2">
-                                <i class="bi bi-info-circle-fill flex-shrink-0 mt-1"
-                                   style="color:var(--primary);"></i>
-                                <div>
-                                    <div class="fw-700 mb-1"
-                                         style="font-size:.82rem;color:var(--primary);">
-                                        Compte démo administrateur
-                                    </div>
-                                    <div style="font-size:.8rem;color:var(--text-muted);line-height:1.8;">
-                                        Email : <code>admin@shopci.com</code><br>
-                                        Mot de passe : <code>Admin123!</code>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                     </div>
 
                 </div>
@@ -264,26 +251,19 @@
     .ps-icon  { padding-left: 2.6rem !important; }
     .pe-icon  { padding-right: 2.8rem !important; }
 
-    /* Démo card */
-    .demo-card {
-        background: var(--primary-xl);
-        border: 1px solid var(--primary-l);
-        border-radius: 12px;
-        padding: .95rem 1.1rem;
-    }
-    .demo-card code {
-        background: var(--primary-l);
-        color: var(--primary);
-        padding: .12em .45em;
-        border-radius: 5px;
-        font-size: .78rem; font-weight: 700;
-        font-family: 'SF Mono', 'Fira Code', monospace;
-    }
 </style>
 @endpush
 
 @push('scripts')
 <script>
+    // Empêcher le remplissage automatique du navigateur.
+    // On ne réinitialise l'email que s'il ne vient pas d'une erreur de validation.
+    const serverEmail = @json(old('email', ''));
+    window.addEventListener('load', function () {
+        document.getElementById('email').value    = serverEmail;
+        document.getElementById('password').value = '';
+    });
+
     document.getElementById('togglePwd').addEventListener('click', function () {
         const pwd  = document.getElementById('password');
         const icon = document.getElementById('eyeIcon');

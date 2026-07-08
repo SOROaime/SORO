@@ -15,13 +15,24 @@ class Order extends Model
         'total_amount',
         'status',
         'shipping_address',
+        'shipping_phone',
         'shipping_city',
-        'shipping_postal_code',
+        'shipping_commune',
+        'shipping_quartier',
         'notes',
+        'installment_count',
     ];
 
     protected $casts = [
         'total_amount' => 'decimal:2',
+        // Couche 7 — Chiffrement AES-256 des données personnelles sensibles
+        // Laravel utilise AES-256-CBC avec la clé APP_KEY (.env).
+        // Stockées chiffrées en base, déchiffrées automatiquement à la lecture.
+        'shipping_address'  => 'encrypted',
+        'shipping_phone'    => 'encrypted',
+        'shipping_commune'  => 'encrypted',
+        'shipping_quartier' => 'encrypted',
+        'notes'             => 'encrypted',
     ];
 
     // Libellés lisibles des statuts
@@ -65,6 +76,11 @@ class Order extends Model
         return $this->hasOne(Payment::class);
     }
 
+    public function installments()
+    {
+        return $this->hasMany(Installment::class)->orderBy('installment_number');
+    }
+
     // ========================
     // ACCESSORS
     // ========================
@@ -99,9 +115,38 @@ class Order extends Model
         return sprintf('ORD-%s-%05d', $date, $last + 1);
     }
 
+    public function hasInstallments(): bool
+    {
+        return ($this->installment_count ?? 1) > 1;
+    }
+
+    public function getPaidInstallmentsCountAttribute(): int
+    {
+        return $this->installments->where('status', 'paid')->count();
+    }
+
     /** Vérifie si la commande peut être annulée */
     public function canBeCancelled(): bool
     {
         return in_array($this->status, ['pending', 'paid']);
+    }
+
+    /**
+     * Remet en stock les quantités de chaque article de la commande.
+     * À appeler juste avant de passer le statut à 'cancelled'.
+     * Ignore les articles dont le produit a été supprimé.
+     */
+    public function restoreStock(): void
+    {
+        // Guard : ne restaurer qu'une seule fois (évite le doublement du stock)
+        if ($this->status === 'cancelled') return;
+
+        $this->loadMissing('items.product');
+
+        foreach ($this->items as $item) {
+            if ($item->product) {
+                $item->product->increment('stock', $item->quantity);
+            }
+        }
     }
 }

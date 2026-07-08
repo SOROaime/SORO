@@ -139,31 +139,33 @@
 
                             {{-- Stepper quantité --}}
                             <div class="flex-shrink-0">
-                                <form action="{{ route('cart.update', $item) }}"
-                                      method="POST" id="form-{{ $item->id }}">
-                                    @csrf @method('PATCH')
-                                    <div class="qty-stepper">
-                                        <button type="button"
-                                                onclick="stepCart({{ $item->id }}, -1, {{ $item->product->stock }})"
-                                                {{ $item->quantity <= 1 ? 'disabled' : '' }}>
-                                            <i class="bi bi-dash-lg"></i>
-                                        </button>
-                                        <input type="number"
-                                               name="quantity"
-                                               id="cart-qty-{{ $item->id }}"
-                                               value="{{ $item->quantity }}"
-                                               min="1"
-                                               max="{{ $item->product->stock }}"
-                                               onchange="cartQtyChanged({{ $item->id }}, {{ $item->product->stock }}, {{ $item->product->price }})">
-                                        <button type="button"
-                                                onclick="stepCart({{ $item->id }}, 1, {{ $item->product->stock }})"
-                                                {{ $item->quantity >= $item->product->stock ? 'disabled' : '' }}>
-                                            <i class="bi bi-plus-lg"></i>
-                                        </button>
-                                    </div>
-                                    <button type="submit" class="d-none"
-                                            id="submit-{{ $item->id }}"></button>
-                                </form>
+                                <div class="qty-stepper"
+                                     data-item-id="{{ $item->id }}"
+                                     data-update-url="{{ route('cart.update', $item) }}"
+                                     data-csrf="{{ csrf_token() }}"
+                                     data-stock="{{ $item->product->stock }}">
+                                    <button type="button"
+                                            onclick="stepCart({{ $item->id }}, -1, {{ $item->product->stock }})"
+                                            {{ $item->quantity <= 1 ? 'disabled' : '' }}>
+                                        <i class="bi bi-dash-lg"></i>
+                                    </button>
+                                    <input type="number"
+                                           id="cart-qty-{{ $item->id }}"
+                                           value="{{ $item->quantity }}"
+                                           min="1"
+                                           max="{{ $item->product->stock }}"
+                                           onchange="cartQtyChanged({{ $item->id }}, {{ $item->product->stock }}, {{ $item->product->price }})">
+                                    <button type="button"
+                                            onclick="stepCart({{ $item->id }}, 1, {{ $item->product->stock }})"
+                                            {{ $item->quantity >= $item->product->stock ? 'disabled' : '' }}>
+                                        <i class="bi bi-plus-lg"></i>
+                                    </button>
+                                </div>
+                                <div id="save-indicator-{{ $item->id }}"
+                                     style="text-align:center;font-size:.68rem;height:14px;margin-top:3px;
+                                            color:var(--text-muted);transition:opacity .3s;opacity:0;">
+                                    <i class="bi bi-check-circle-fill" style="color:#16a34a;"></i> Enregistré
+                                </div>
                             </div>
 
                             {{-- Sous-total --}}
@@ -377,11 +379,60 @@
 
         recalcTotal();
 
-        // Debounce — soumet le form après 750ms d'inactivité
+        // Debounce — enregistre via AJAX après 750ms d'inactivité
         clearTimeout(window['debounce_' + itemId]);
         window['debounce_' + itemId] = setTimeout(() => {
-            document.getElementById('submit-' + itemId).click();
+            saveCartItem(itemId, qty);
         }, 750);
+    }
+
+    // ── Sauvegarde AJAX silencieuse ──
+    function saveCartItem(itemId, qty) {
+        const stepper = document.querySelector('.qty-stepper[data-item-id="' + itemId + '"]');
+        if (!stepper) return;
+
+        const url    = stepper.dataset.updateUrl;
+        const csrf   = stepper.dataset.csrf;
+        const indEl  = document.getElementById('save-indicator-' + itemId);
+
+        fetch(url, {
+            method:  'POST',
+            headers: {
+                'Content-Type':  'application/json',
+                'Accept':        'application/json',
+                'X-CSRF-TOKEN':  csrf,
+            },
+            body: JSON.stringify({ quantity: qty, _method: 'PATCH' }),
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (!data.ok) {
+                // Stock insuffisant : réajuster la valeur max
+                const input = document.getElementById('cart-qty-' + itemId);
+                if (data.max && input) {
+                    input.value = data.max;
+                    cartQtyChanged(itemId, data.max, unitPrices[itemId]);
+                }
+                return;
+            }
+            // Mettre à jour les badges navbar
+            if (data.count !== undefined) {
+                const badge = document.getElementById('cartCount');
+                if (badge) badge.textContent = data.count;
+                const badgeMobile = document.getElementById('cartCountMobile');
+                if (badgeMobile) badgeMobile.textContent = data.count;
+            }
+
+            // Indicateur visuel rapide
+            if (indEl) {
+                indEl.style.opacity = '1';
+                clearTimeout(window['ind_' + itemId]);
+                window['ind_' + itemId] = setTimeout(() => {
+                    indEl.style.opacity = '0';
+                }, 1400);
+            }
+        })
+        .catch(() => { /* réseau — on ignore, les totaux locaux sont déjà corrects */ });
     }
 
     // ── Recalcul du total global ──

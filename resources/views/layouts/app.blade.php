@@ -4,7 +4,60 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'ShopCI') — Boutique en ligne</title>
+
+    {{-- ── SEO ── --}}
+    @php
+        $suffix    = ' — Boutique en ligne Cote d\'Ivoire';
+        $pageTitle = View::hasSection('seo_title')
+            ? html_entity_decode(View::yieldContent('seo_title'), ENT_QUOTES, 'UTF-8')
+            : (View::hasSection('title')
+                ? html_entity_decode(View::yieldContent('title'), ENT_QUOTES, 'UTF-8') . $suffix
+                : 'ShopCI' . $suffix);
+        $seoDesc = View::hasSection('seo_description')
+            ? html_entity_decode(View::yieldContent('seo_description'), ENT_QUOTES, 'UTF-8')
+            : 'ShopCI - Boutique en ligne en Cote d\'Ivoire. Livraison gratuite, paiement securise.';
+        $ogType  = View::hasSection('og_type')  ? View::yieldContent('og_type')  : 'website';
+        $ogImage = View::hasSection('og_image') ? View::yieldContent('og_image') : asset('images/og-default.jpg');
+        $ldJson  = json_encode([
+            '@context'     => 'https://schema.org',
+            '@type'        => 'Organization',
+            'name'         => 'ShopCI',
+            'url'          => config('app.url'),
+            'logo'         => asset('images/logo.png'),
+            'description'  => 'Boutique en ligne en Cote d\'Ivoire - livraison gratuite, paiement securise.',
+            'contactPoint' => [
+                '@type'             => 'ContactPoint',
+                'email'             => config('mail.from.address'),
+                'contactType'       => 'customer service',
+                'availableLanguage' => 'French',
+            ],
+            'areaServed' => 'CI',
+        ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    @endphp
+    <title>{{ $pageTitle }}</title>
+    <meta name="description" content="{{ $seoDesc }}">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="{{ url()->current() }}">
+
+    {{-- ── Open Graph ── --}}
+    <meta property="og:type"        content="{{ $ogType }}">
+    <meta property="og:title"       content="{{ $pageTitle }}">
+    <meta property="og:description" content="{{ $seoDesc }}">
+    <meta property="og:url"         content="{{ url()->current() }}">
+    <meta property="og:image"       content="{{ $ogImage }}">
+    <meta property="og:site_name"   content="ShopCI">
+    <meta property="og:locale"      content="fr_CI">
+
+    {{-- ── Twitter Card ── --}}
+    <meta name="twitter:card"        content="summary_large_image">
+    <meta name="twitter:title"       content="{{ $pageTitle }}">
+    <meta name="twitter:description" content="{{ $seoDesc }}">
+    <meta name="twitter:image"       content="{{ $ogImage }}">
+
+    {{-- ── JSON-LD Organisation ── --}}
+    <script type="application/ld+json">{!! $ldJson !!}</script>
+
+    @stack('seo_schema')
 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -819,6 +872,114 @@
         .table tbody tr:last-child td { border-bottom: none; }
         .table tbody tr { transition: background .15s; }
         .table tbody tr:hover { background: var(--primary-xl); }
+
+        /* ══════════════════════════════════════════════
+           RESPONSIVE MOBILE
+        ══════════════════════════════════════════════ */
+        @media (max-width: 991.98px) {
+            /* Navbar collapse : fond sombre, espacement */
+            #navMenu {
+                background: rgba(10,18,36,.98);
+                border-radius: 16px;
+                padding: 1rem;
+                margin-top: .5rem;
+                border: 1px solid rgba(255,255,255,.07);
+            }
+            .navbar-nav .nav-link {
+                padding: .65rem .9rem !important;
+                border-radius: 10px;
+            }
+            /* Icônes panier/favoris en ligne sur mobile */
+            .navbar-nav.ms-auto {
+                flex-direction: row !important;
+                flex-wrap: wrap;
+                gap: .5rem !important;
+                align-items: center;
+                padding-top: .5rem;
+                border-top: 1px solid rgba(255,255,255,.07);
+                margin-top: .5rem;
+            }
+            /* Bouton S'inscrire pleine largeur */
+            .navbar-nav .btn-primary {
+                width: 100%;
+                justify-content: center;
+                padding: .6rem 1rem !important;
+                margin-top: .25rem;
+            }
+        }
+
+        @media (max-width: 767.98px) {
+            /* Hero moins de padding */
+            .hero {
+                padding: 60px 0 50px;
+            }
+            .hero h1 {
+                font-size: clamp(1.7rem, 7vw, 2.4rem);
+            }
+
+            /* Section titles */
+            .section-title { font-size: 1.35rem; }
+
+            /* Product cards : 2 par ligne sur mobile */
+            .product-card .card-img-top { height: 140px; }
+            .product-card .card-body { padding: .65rem .7rem; }
+            .product-card .price { font-size: .95rem; }
+            .product-card .card-body h6 { font-size: .8rem; }
+            .product-card .card-body p { display: none; }
+            .product-card .d-flex.gap-2.mt-3 .btn { font-size: .72rem; padding: .32rem .5rem; }
+
+            /* Footer : tout en colonne */
+            footer { padding: 48px 0 24px; margin-top: 60px; }
+            footer .row.g-5 { --bs-gutter-y: 2rem; }
+
+            /* Toasts plus petits */
+            .flash-container { width: calc(100vw - 32px); right: 16px; }
+            .flash-toast { font-size: .82rem; padding: .75rem .9rem; }
+
+            /* Tables : scroll horizontal */
+            .table-responsive-stack { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+            /* Qty stepper plus compact */
+            .qty-stepper button { width: 36px; height: 36px; }
+            .qty-stepper input  { width: 44px; height: 36px; font-size: .88rem; }
+
+            /* Checkout : résumé en bas sur mobile (déjà col-lg, ok) */
+            .price-preview .total-price { font-size: 1.5rem; }
+
+            /* Page padding */
+            .container { padding-left: .75rem; padding-right: .75rem; }
+        }
+
+        @media (max-width: 400px) {
+            /* Très petits écrans — cartes encore plus compactes */
+            .product-card .card-img-top { height: 110px; }
+            .product-card .card-body { padding: .5rem; }
+            .product-card .price { font-size: .85rem; }
+            .stock-chip { font-size: .58rem; padding: .2em .5em; }
+        }
+
+        @media (max-width: 480px) {
+            /* Très petits écrans */
+            .hero { padding: 44px 0 40px; }
+            .hero h1 { font-size: 1.55rem; }
+
+            /* Boutons héro empilés */
+            .hero .d-flex.gap-3 {
+                flex-direction: column !important;
+                gap: .75rem !important;
+            }
+            .hero .btn { width: 100%; justify-content: center; }
+
+            /* Navbar brand texte */
+            .navbar-brand .brand-text { font-size: 1.15rem; }
+
+            /* Chat widget */
+            #chat-window {
+                width: calc(100vw - 20px) !important;
+                right: -4px !important;
+                bottom: 64px !important;
+            }
+        }
     </style>
 
     @stack('styles')
@@ -915,7 +1076,7 @@
                             <i class="bi bi-bag" style="font-size:1.05rem;"></i>
                             @php $cartCount = auth()->user()->activeCart?->total_items ?? 0; @endphp
                             @if($cartCount > 0)
-                                <span class="cart-count">{{ $cartCount > 99 ? '99+' : $cartCount }}</span>
+                                <span class="cart-count" id="cartCount">{{ $cartCount > 99 ? '99+' : $cartCount }}</span>
                             @endif
                         </a>
                     </li>
@@ -956,7 +1117,7 @@
                                     </div>
                                     Mon panier
                                     @if($cartCount > 0)
-                                        <span class="badge ms-auto"
+                                        <span class="badge ms-auto" id="cartCountMobile"
                                               style="background:var(--primary-l);color:var(--primary);font-size:.66rem;">
                                             {{ $cartCount }}
                                         </span>
@@ -978,6 +1139,14 @@
                                 </a>
                             </li>
                             <li>
+                                <a class="dropdown-item" href="{{ route('profile.show') }}">
+                                    <div class="di-icon" style="background:#eff6ff;color:var(--primary);">
+                                        <i class="bi bi-person-circle"></i>
+                                    </div>
+                                    Mon profil
+                                </a>
+                            </li>
+                            <li>
                                 <a class="dropdown-item" href="{{ route('orders.index') }}">
                                     <div class="di-icon" style="background:#f0fdf4;color:var(--success);">
                                         <i class="bi bi-receipt"></i>
@@ -996,6 +1165,15 @@
                                         Administration
                                         <i class="bi bi-arrow-up-right ms-auto"
                                            style="font-size:.65rem;opacity:.5;"></i>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{{ route('admin.coupons.index') }}">
+                                        <div class="di-icon"
+                                             style="background:linear-gradient(135deg,#fce7f3,#fbcfe8);color:#9d174d;">
+                                            <i class="bi bi-tag-fill"></i>
+                                        </div>
+                                        Coupons promo
                                     </a>
                                 </li>
                             @endif
@@ -1098,16 +1276,16 @@
                             Support en ligne 7j/7
                         </a>
                     </li>
-                    <li><a href="#"><i class="bi bi-envelope me-2" style="font-size:.75rem;"></i>Contact</a></li>
-                    <li><a href="#"><i class="bi bi-question-circle me-2" style="font-size:.75rem;"></i>FAQ</a></li>
-                    <li><a href="#"><i class="bi bi-arrow-return-left me-2" style="font-size:.75rem;"></i>Retours</a></li>
+                    <li><a href="{{ route('contact') }}"><i class="bi bi-envelope me-2" style="font-size:.75rem;"></i>Contact</a></li>
+                    <li><a href="{{ route('cgv') }}"><i class="bi bi-file-text me-2" style="font-size:.75rem;"></i>CGV</a></li>
+                    <li><a href="{{ route('contact') }}"><i class="bi bi-arrow-return-left me-2" style="font-size:.75rem;"></i>Retours</a></li>
                 </ul>
             </div>
         </div>
 
         <hr>
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 pt-1">
-            <span style="font-size:.8rem;">© {{ date('Y') }} ShopCI — Tous droits réservés</span>
+            <span style="font-size:.8rem;">© {{ date('Y') }} ShopCI — Tous droits réservés &nbsp;·&nbsp; <a href="{{ route('cgv') }}" style="color:rgba(255,255,255,.44);text-decoration:none;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.44)'">CGV</a> &nbsp;·&nbsp; <a href="{{ route('contact') }}" style="color:rgba(255,255,255,.44);text-decoration:none;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.44)'">Contact</a></span>
             <span style="font-size:.76rem;display:flex;align-items:center;gap:6px;">
                 <i class="bi bi-shield-check" style="color:var(--success);"></i>
                 Site sécurisé SSL · Données protégées
@@ -1138,5 +1316,7 @@
 </script>
 
 @stack('scripts')
+
+@include('chat.widget')
 </body>
 </html>

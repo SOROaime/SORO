@@ -10,15 +10,29 @@
             {{-- Icône succès animée --}}
             <div class="text-center mb-5">
                 <div class="success-circle mx-auto mb-4">
-                    <i class="bi bi-check-lg"></i>
+                    @if(isset($cod) && $cod)
+                        <i class="bi bi-truck"></i>
+                    @else
+                        <i class="bi bi-check-lg"></i>
+                    @endif
                 </div>
-                <h1 class="fw-900 mb-2" style="font-size:2rem;color:#16a34a;letter-spacing:-.04em;">
-                    Paiement réussi !
-                </h1>
-                <p class="text-muted" style="font-size:1.05rem;">
-                    Merci pour votre commande, <strong>{{ auth()->user()->name }}</strong>.<br>
-                    Vous recevrez une confirmation prochainement.
-                </p>
+                @if(isset($cod) && $cod)
+                    <h1 class="fw-900 mb-2" style="font-size:2rem;color:#16a34a;letter-spacing:-.04em;">
+                        Commande confirmée !
+                    </h1>
+                    <p class="text-muted" style="font-size:1.05rem;">
+                        Merci, <strong>{{ auth()->user()->name }}</strong> !<br>
+                        Vous paierez <strong>{{ $order->formatted_total }}</strong> en espèces à la livraison.
+                    </p>
+                @else
+                    <h1 class="fw-900 mb-2" style="font-size:2rem;color:#16a34a;letter-spacing:-.04em;">
+                        Paiement réussi !
+                    </h1>
+                    <p class="text-muted" style="font-size:1.05rem;">
+                        Merci pour votre commande, <strong>{{ auth()->user()->name }}</strong>.<br>
+                        Vous recevrez une confirmation prochainement.
+                    </p>
+                @endif
             </div>
 
             {{-- Récapitulatif --}}
@@ -65,8 +79,10 @@
                             <div class="p-3 rounded-3" style="background:var(--light-bg);border:1px solid var(--border);">
                                 <div class="text-muted mb-1" style="font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;font-weight:600;">Date & heure</div>
                                 <div class="fw-600" style="font-size:.85rem;">
-                                    {{ $order->payment->paid_at->format('d/m/Y') }}<br>
-                                    <span class="text-muted" style="font-size:.78rem;">{{ $order->payment->paid_at->format('H:i') }}</span>
+                                    {{ ($order->payment->paid_at ?? now())->format('d/m/Y') }}<br>
+                                    <span class="text-muted" style="font-size:.78rem;">
+                                        {{ ($order->payment->paid_at ?? now())->format('H:i') }}
+                                    </span>
                                 </div>
                             </div>
                         </div>

@@ -35,4 +35,20 @@ return [
         ],
     ],
 
+    'claude' => [
+        'key' => env('ANTHROPIC_API_KEY'),
+    ],
+
+    'groq' => [
+        'key' => env('GROQ_API_KEY'),
+    ],
+
+    'geniuspay' => [
+        'key'            => env('GENIUSPAY_API_KEY'),
+        'secret'         => env('GENIUSPAY_API_SECRET'),
+        'webhook_secret' => env('GENIUSPAY_WEBHOOK_SECRET'),
+        'base_url'       => env('GENIUSPAY_BASE_URL', 'https://pay.genius.ci/api/v1/merchant'),
+    ],
+
+
 ];

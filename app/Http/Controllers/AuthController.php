@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -37,6 +38,7 @@ class AuthController extends Controller
         $rules = [
             'name'     => ['required', 'string', 'min:2', 'max:255'],
             'email'    => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'phone'    => ['required', 'string', 'min:8', 'max:20'],
             'password' => ['required', 'confirmed', Password::min(8)->mixedCase()->numbers()],
         ];
 
@@ -45,6 +47,8 @@ class AuthController extends Controller
             'email.required'     => 'L\'adresse email est obligatoire.',
             'email.email'        => 'L\'adresse email n\'est pas valide.',
             'email.unique'       => 'Cette adresse email est déjà utilisée.',
+            'phone.required'     => 'Le numéro de téléphone est obligatoire.',
+            'phone.min'          => 'Le numéro de téléphone doit comporter au moins 8 chiffres.',
             'password.required'  => 'Le mot de passe est obligatoire.',
             'password.confirmed' => 'Les mots de passe ne correspondent pas.',
             'password.min'       => 'Le mot de passe doit contenir au moins 8 caractères.',
@@ -82,6 +86,7 @@ class AuthController extends Controller
         $user = User::create([
             'name'     => $validated['name'],
             'email'    => $validated['email'],
+            'phone'    => $validated['phone'],
             'password' => Hash::make($validated['password']),
             'role'     => $role,
         ]);
@@ -89,17 +94,20 @@ class AuthController extends Controller
         // Connexion automatique après inscription
         Auth::login($user);
 
+        // Déclencher l'envoi de l'email de vérification
+        event(new Registered($user));
+
         // Message de bienvenue adapté au rôle
         $message = $role === 'admin'
-            ? 'Bienvenue ' . $user->name . ' ! Votre compte administrateur a été créé avec succès.'
-            : 'Bienvenue ' . $user->name . ' ! Votre compte a été créé avec succès.';
+            ? 'Bienvenue ' . $user->name . ' ! Votre compte administrateur a été créé. Vérifiez votre email.'
+            : 'Bienvenue ' . $user->name . ' ! Votre compte a été créé. Vérifiez votre email pour l\'activer.';
 
         // Redirection selon le rôle
         if ($role === 'admin') {
             return redirect()->route('admin.dashboard')->with('success', $message);
         }
 
-        return redirect()->route('home')->with('success', $message);
+        return redirect()->route('verification.notice')->with('success', $message);
     }
 
     // ============================================================

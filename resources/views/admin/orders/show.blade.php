@@ -93,6 +93,71 @@
             </div>
         </div>
 
+        {{-- Tranches de paiement --}}
+        @if($order->hasInstallments())
+        <div class="card stat-card mb-4">
+            <div class="card-header bg-white border-0 py-3 px-4" style="border-bottom:1px solid var(--border)!important;">
+                <h5 class="mb-0 fw-700 d-flex align-items-center gap-2">
+                    <div style="width:32px;height:32px;background:#fef9c3;border-radius:9px;display:flex;align-items:center;justify-content:center;color:#b45309;">
+                        <i class="bi bi-calendar-week"></i>
+                    </div>
+                    Paiement par tranches
+                    <span style="background:#f1f5f9;color:#64748b;padding:.15em .6em;border-radius:20px;font-size:.75rem;font-weight:700;">
+                        {{ $order->paid_installments_count }}/{{ $order->installment_count }}
+                    </span>
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                @foreach($order->installments as $inst)
+                @php
+                    $isOverdue = $inst->status === 'pending' && $inst->due_date->isPast();
+                    $bg    = $inst->status === 'paid' ? '#dcfce7' : ($isOverdue ? '#fee2e2' : '#f8fafc');
+                    $color = $inst->status === 'paid' ? '#16a34a' : ($isOverdue ? '#dc2626' : '#475569');
+                    $icon  = $inst->status === 'paid' ? 'bi-check-circle-fill' : ($isOverdue ? 'bi-exclamation-circle-fill' : 'bi-clock');
+                @endphp
+                <div class="d-flex align-items-center justify-content-between px-4 py-3"
+                     style="border-bottom:1px solid var(--border);background:{{ $bg }};">
+                    <div class="d-flex align-items-center gap-3">
+                        <i class="bi {{ $icon }}" style="color:{{ $color }};font-size:1.1rem;"></i>
+                        <div>
+                            <div class="fw-700" style="font-size:.88rem;color:{{ $color }};">
+                                Tranche {{ $inst->installment_number }}/{{ $order->installment_count }}
+                            </div>
+                            <div style="font-size:.75rem;color:#64748b;">
+                                @if($inst->status === 'paid')
+                                    Payée le {{ $inst->paid_at->format('d/m/Y à H:i') }}
+                                @elseif($isOverdue)
+                                    En retard — échue le {{ $inst->due_date->format('d/m/Y') }}
+                                @else
+                                    Échéance : {{ $inst->due_date->format('d/m/Y') }}
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="fw-900" style="color:{{ $color }};font-size:.95rem;">{{ $inst->formatted_amount }}</span>
+                        @if($inst->status !== 'paid')
+                        <form action="{{ route('admin.installments.pay', [$order, $inst]) }}" method="POST">
+                            @csrf
+                            @method('PATCH')
+                            <button type="submit" class="btn btn-sm fw-700"
+                                    style="background:#16a34a;color:#fff;border-radius:8px;font-size:.78rem;"
+                                    onclick="return confirm('Marquer cette tranche comme payée ?')">
+                                <i class="bi bi-check2 me-1"></i>Marquer payée
+                            </button>
+                        </form>
+                        @else
+                        <span style="background:#dcfce7;color:#16a34a;padding:.25em .7em;border-radius:20px;font-size:.72rem;font-weight:800;">
+                            <i class="bi bi-check-circle-fill me-1"></i>Payée
+                        </span>
+                        @endif
+                    </div>
+                </div>
+                @endforeach
+            </div>
+        </div>
+        @endif
+
         {{-- Livraison --}}
         @if($order->shipping_address)
         <div class="card stat-card">
@@ -109,7 +174,9 @@
                     <i class="bi bi-geo-alt-fill text-primary mt-1 flex-shrink-0" style="font-size:1.1rem;"></i>
                     <div>
                         <div class="fw-700 mb-1">{{ $order->shipping_address }}</div>
-                        <div class="text-muted">{{ $order->shipping_postal_code }} {{ $order->shipping_city }}</div>
+                        <div class="text-muted">
+                            {{ $order->shipping_quartier }}{{ $order->shipping_quartier ? ', ' : '' }}{{ $order->shipping_commune }}{{ $order->shipping_commune ? ' — ' : '' }}{{ $order->shipping_city }}
+                        </div>
                         @if($order->notes)
                             <div class="mt-2 p-2 rounded-2" style="background:#fef9c3;font-size:.82rem;color:#854d0e;">
                                 <i class="bi bi-chat-quote me-1"></i>{{ $order->notes }}

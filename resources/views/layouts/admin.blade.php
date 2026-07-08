@@ -240,6 +240,56 @@
         }
 
         /* ══════════════════════════════════════════
+           RESPONSIVE MOBILE
+        ══════════════════════════════════════════ */
+        .sidebar-overlay {
+            display: none;
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,.5);
+            z-index: 1039;
+            backdrop-filter: blur(2px);
+        }
+        .sidebar-overlay.show { display: block; }
+
+        .topbar-hamburger {
+            display: none;
+            background: none; border: none;
+            color: var(--text); font-size: 1.3rem;
+            padding: 4px 8px; cursor: pointer;
+            border-radius: 8px;
+            transition: var(--transition);
+        }
+        .topbar-hamburger:hover { background: var(--light-bg); }
+
+        @media (max-width: 991px) {
+            .admin-sidebar {
+                transform: translateX(-100%);
+                transition: transform .28s cubic-bezier(.4,0,.2,1);
+            }
+            .admin-sidebar.open {
+                transform: translateX(0);
+            }
+            .admin-content {
+                margin-left: 0;
+                padding-left: 16px;
+                padding-right: 16px;
+                padding-top: calc(var(--topbar-h) + 16px);
+            }
+            .admin-topbar {
+                left: 0;
+                padding: 0 16px;
+            }
+            .topbar-hamburger { display: flex; align-items: center; }
+        }
+
+        @media (max-width: 575px) {
+            .admin-content {
+                padding-left: 12px;
+                padding-right: 12px;
+            }
+        }
+
+        /* ══════════════════════════════════════════
            STAT CARDS
         ══════════════════════════════════════════ */
         .stat-card {
@@ -473,11 +523,39 @@
            class="sidebar-link {{ request()->routeIs('admin.payments.*') ? 'active' : '' }}">
             <i class="bi bi-credit-card"></i>Paiements
         </a>
+        <a href="{{ route('admin.installments.index') }}"
+           class="sidebar-link {{ request()->routeIs('admin.installments.index') ? 'active' : '' }}">
+            <i class="bi bi-calendar-week"></i>Tranches
+            @php $pendingInstallments = \App\Models\Installment::where('status','pending')->count(); @endphp
+            @if($pendingInstallments > 0)
+                <span class="badge-count">{{ $pendingInstallments }}</span>
+            @endif
+        </a>
 
         <div class="sidebar-section">Gestion</div>
         <a href="{{ route('admin.users.index') }}"
            class="sidebar-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
             <i class="bi bi-people"></i>Utilisateurs
+        </a>
+        <a href="{{ route('admin.reports') }}"
+           class="sidebar-link {{ request()->routeIs('admin.reports*') ? 'active' : '' }}">
+            <i class="bi bi-bar-chart-line"></i>Rapports & Stats
+        </a>
+        <a href="{{ route('admin.conversations.index') }}"
+           class="sidebar-link {{ request()->routeIs('admin.conversations*') ? 'active' : '' }}">
+            <i class="bi bi-chat-dots"></i>Conversations
+            @php $convCount = \App\Models\ChatConversation::whereDate('updated_at', today())->count(); @endphp
+            @if($convCount > 0)
+                <span class="badge ms-auto" style="background:#f59e0b;font-size:.6rem;color:#fff;">{{ $convCount }}</span>
+            @endif
+        </a>
+        <a href="{{ route('admin.reviews.index') }}"
+           class="sidebar-link {{ request()->routeIs('admin.reviews*') ? 'active' : '' }}">
+            <i class="bi bi-star-half"></i>Avis clients
+            @php $pendingReviews = \App\Models\Review::whereIn('rating',[1,2])->count(); @endphp
+            @if($pendingReviews > 0)
+                <span class="badge bg-danger ms-auto" style="font-size:.6rem;">{{ $pendingReviews }}</span>
+            @endif
         </a>
         <a href="{{ route('admin.products.create') }}" class="sidebar-link">
             <i class="bi bi-plus-circle"></i>Ajouter un produit
@@ -513,16 +591,24 @@
     </div>
 </aside>
 
+{{-- ══════════════ OVERLAY MOBILE ══════════════ --}}
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
 {{-- ══════════════ TOPBAR ══════════════ --}}
 <header class="admin-topbar">
-    <nav class="topbar-breadcrumb" aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item">
-                <a href="{{ route('admin.dashboard') }}">Admin</a>
-            </li>
-            @yield('breadcrumb')
-        </ol>
-    </nav>
+    <div class="d-flex align-items-center gap-2">
+        <button class="topbar-hamburger" id="sidebarToggle" onclick="toggleSidebar()" aria-label="Menu">
+            <i class="bi bi-list"></i>
+        </button>
+        <nav class="topbar-breadcrumb" aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{{ route('admin.dashboard') }}">Admin</a>
+                </li>
+                @yield('breadcrumb')
+            </ol>
+        </nav>
+    </div>
     <div class="topbar-right">
         <a href="{{ route('home') }}" class="topbar-shop-btn d-none d-md-flex" target="_blank">
             <i class="bi bi-shop"></i>Boutique
@@ -564,6 +650,22 @@
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function toggleSidebar() {
+    document.querySelector('.admin-sidebar').classList.toggle('open');
+    document.getElementById('sidebarOverlay').classList.toggle('show');
+}
+function closeSidebar() {
+    document.querySelector('.admin-sidebar').classList.remove('open');
+    document.getElementById('sidebarOverlay').classList.remove('show');
+}
+// Fermer la sidebar quand on clique sur un lien (mobile)
+document.querySelectorAll('.sidebar-link').forEach(function(link) {
+    link.addEventListener('click', function() {
+        if (window.innerWidth < 992) closeSidebar();
+    });
+});
+</script>
 @stack('scripts')
 </body>
 </html>

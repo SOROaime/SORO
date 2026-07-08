@@ -1,7 +1,70 @@
 @extends('layouts.app')
 @section('title', 'Catalogue')
+@section('seo_title', request('category') ? request('category') . ' — ShopCI' : 'Catalogue produits — ShopCI Côte d\'Ivoire')
+@section('seo_description', request('search') ? 'Résultats pour "' . request('search') . '" sur ShopCI — boutique en ligne Côte d\'Ivoire.' : 'Découvrez notre catalogue de produits sur ShopCI. Livraison gratuite partout en Côte d\'Ivoire. Paiement sécurisé.')
 
 @section('content')
+
+{{-- ─── BOUTON FILTRES FLOTTANT MOBILE — connectés seulement ─── --}}
+@auth
+<div class="d-lg-none" id="mobileFilterBar">
+    <div class="px-3 py-2">
+        <button class="btn btn-outline-secondary w-100"
+                type="button" data-bs-toggle="collapse" data-bs-target="#filtresPanelMobile"
+                aria-expanded="false">
+            <i class="bi bi-funnel me-2"></i>Filtres & Recherche
+            @if(request('search') || request('category'))
+                <span class="badge ms-1" style="background:var(--primary);color:#fff;font-size:.65rem;">actif</span>
+            @endif
+            <i class="bi bi-chevron-down ms-auto"></i>
+        </button>
+        <div class="collapse" id="filtresPanelMobile">
+            <div class="card mt-2">
+                <div class="card-body p-3">
+                    <form action="{{ route('products.index') }}" method="GET">
+                        <div class="mb-3">
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                <input type="text" name="search" class="form-control"
+                                       placeholder="Nom, description…"
+                                       value="{{ request('search') }}">
+                            </div>
+                        </div>
+                        @if(isset($categories) && $categories->isNotEmpty())
+                        <div class="mb-3">
+                            <select name="category" class="form-select form-select-sm">
+                                <option value="">Toutes les catégories</option>
+                                @foreach($categories as $cat)
+                                    <option value="{{ $cat }}" {{ request('category') === $cat ? 'selected' : '' }}>
+                                        {{ $cat }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        @endif
+                        <div class="mb-3">
+                            <select name="sort" class="form-select form-select-sm" onchange="this.form.submit()">
+                                <option value="newest"     {{ request('sort','newest') === 'newest'    ? 'selected' : '' }}>Nouveautés</option>
+                                <option value="price_asc"  {{ request('sort') === 'price_asc'          ? 'selected' : '' }}>Prix croissant</option>
+                                <option value="price_desc" {{ request('sort') === 'price_desc'         ? 'selected' : '' }}>Prix décroissant</option>
+                                <option value="name"       {{ request('sort') === 'name'               ? 'selected' : '' }}>Nom A→Z</option>
+                            </select>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary btn-sm flex-grow-1">
+                                <i class="bi bi-search"></i>Filtrer
+                            </button>
+                            <a href="{{ route('products.index') }}" class="btn btn-outline-secondary btn-sm">
+                                <i class="bi bi-x-lg"></i>
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endauth
 
 {{-- ─── HEADER ─── --}}
 <div class="page-header-bar">
@@ -35,11 +98,11 @@
     </div>
 </div>
 
-<div class="container py-5">
+<div class="container py-5" id="catalogueContainer">
     <div class="row g-4">
 
-        {{-- ─── FILTRES (sidebar) ─── --}}
-        <div class="col-lg-3 fade-in-up">
+        {{-- ─── FILTRES (sidebar desktop) ─── --}}
+        <div class="col-12 col-lg-3 fade-in-up d-none d-lg-block">
             <div class="card sticky-top" style="top:82px;">
                 <div class="card-header py-3 px-4"
                      style="background:#fff;border-bottom:1px solid var(--border-2);">
@@ -130,7 +193,7 @@
         </div>
 
         {{-- ─── GRILLE PRODUITS ─── --}}
-        <div class="col-lg-9">
+        <div class="col-12 col-lg-9">
 
             {{-- Filtres actifs --}}
             @if(request('search') || request('category'))
@@ -168,7 +231,7 @@
                     </a>
                 </div>
             @else
-                <div class="row row-cols-1 row-cols-sm-2 row-cols-xl-3 g-4">
+                <div class="row row-cols-2 row-cols-sm-2 row-cols-xl-3 g-2 g-sm-4">
                     @foreach($products as $product)
                         <div class="col fade-in-up">
                             @include('components.product-card', ['product' => $product])
@@ -195,6 +258,19 @@
 
 @push('styles')
 <style>
+    /* ── Bouton filtres flottant mobile ── */
+    #mobileFilterBar {
+        background: #fff;
+        border-bottom: 1px solid var(--border);
+        z-index: 1020;
+    }
+    #mobileFilterBar.is-sticky {
+        position: fixed;
+        top: var(--navbar-h);
+        left: 0; right: 0;
+        box-shadow: 0 4px 16px rgba(0,0,0,.10);
+    }
+
     .cat-filter-btn {
         display: flex; align-items: center; gap: 7px;
         padding: .48rem .85rem;
@@ -232,6 +308,47 @@
         opacity: .7;
     }
     .active-filter-tag a:hover { opacity: 1; }
+
 </style>
+@endpush
+
+@push('scripts')
+<script>
+(function () {
+    const bar = document.getElementById('mobileFilterBar');
+    if (!bar) return; // non connecté → rien à faire
+
+    // Placeholder pour éviter le saut de contenu quand la barre devient fixed
+    const placeholder = document.createElement('div');
+    bar.parentNode.insertBefore(placeholder, bar.nextSibling);
+
+    const navH = parseInt(getComputedStyle(document.documentElement)
+                     .getPropertyValue('--navbar-h')) || 68;
+    let barTop = 0;
+
+    function measure() {
+        bar.classList.remove('is-sticky');
+        placeholder.style.height = '';
+        barTop = bar.getBoundingClientRect().top + window.scrollY;
+    }
+
+    function onScroll() {
+        if (window.innerWidth >= 992) return; // desktop : sidebar normale
+        if (window.scrollY > barTop - navH) {
+            if (!bar.classList.contains('is-sticky')) {
+                placeholder.style.height = bar.offsetHeight + 'px';
+                bar.classList.add('is-sticky');
+            }
+        } else {
+            bar.classList.remove('is-sticky');
+            placeholder.style.height = '';
+        }
+    }
+
+    measure();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', function () { measure(); onScroll(); }, { passive: true });
+}());
+</script>
 @endpush
 @endsection

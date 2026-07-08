@@ -96,6 +96,96 @@
                 </div>
             </div>
 
+            {{-- Plan de tranches --}}
+            @if($order->hasInstallments())
+            @php
+                $nextInstallment = $order->installments->where('status', 'pending')->sortBy('installment_number')->first();
+            @endphp
+            <div class="card mb-4" style="border-radius:16px;border:1.5px solid var(--border);">
+                <div class="card-header bg-white py-3 px-4"
+                     style="border-bottom:1.5px solid var(--border);border-radius:16px 16px 0 0;">
+                    <h5 class="mb-0 fw-800 d-flex align-items-center gap-2">
+                        <div style="width:32px;height:32px;background:#fef9c3;border-radius:9px;
+                                    display:flex;align-items:center;justify-content:center;color:#b45309;">
+                            <i class="bi bi-calendar-week"></i>
+                        </div>
+                        Paiement par tranches
+                        <span style="background:#f1f5f9;color:#64748b;padding:.15em .6em;border-radius:20px;font-size:.75rem;font-weight:700;">
+                            {{ $order->paid_installments_count }}/{{ $order->installment_count }} payée(s)
+                        </span>
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    @foreach($order->installments as $inst)
+                    @php
+                        $isOverdue  = $inst->status === 'pending' && $inst->due_date->isPast();
+                        $isNext     = $nextInstallment && $inst->id === $nextInstallment->id;
+                        $bg    = $inst->status === 'paid' ? '#dcfce7' : ($isOverdue ? '#fee2e2' : ($isNext ? '#fffbeb' : '#f8fafc'));
+                        $color = $inst->status === 'paid' ? '#16a34a' : ($isOverdue ? '#dc2626' : '#475569');
+                        $icon  = $inst->status === 'paid' ? 'bi-check-circle-fill' : ($isOverdue ? 'bi-exclamation-circle-fill' : 'bi-clock');
+                    @endphp
+                    <div style="border-bottom:1px solid var(--border);background:{{ $bg }};">
+                        <div class="d-flex align-items-center justify-content-between px-4 py-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <i class="bi {{ $icon }}" style="color:{{ $color }};font-size:1.1rem;"></i>
+                                <div>
+                                    <div class="fw-700" style="font-size:.88rem;color:{{ $color }};">
+                                        Tranche {{ $inst->installment_number }}/{{ $order->installment_count }}
+                                        @if($isNext)
+                                            <span style="background:#fef9c3;color:#b45309;font-size:.7rem;padding:.1em .5em;border-radius:10px;margin-left:.3em;">
+                                                À payer
+                                            </span>
+                                        @endif
+                                    </div>
+                                    <div style="font-size:.75rem;color:#64748b;">
+                                        @if($inst->status === 'paid')
+                                            Payée le {{ $inst->paid_at->format('d/m/Y') }}
+                                        @elseif($isOverdue)
+                                            En retard — échue le {{ $inst->due_date->format('d/m/Y') }}
+                                        @else
+                                            À régler avant le {{ $inst->due_date->format('d/m/Y') }}
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center gap-3">
+                                <span class="fw-900" style="color:{{ $color }};font-size:.95rem;">
+                                    {{ $inst->formatted_amount }}
+                                </span>
+                            </div>
+                        </div>
+
+                        {{-- Bouton payer (tranche suivante uniquement) --}}
+                        @if($isNext && $order->payment && $order->payment->payment_method !== 'cash_on_delivery')
+                        <div class="px-4 pb-3">
+                            <form action="{{ route('installment.pay', [$order, $inst]) }}" method="POST">
+                                @csrf
+                                <button type="submit"
+                                        class="btn btn-sm fw-700 w-100"
+                                        style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;border-radius:10px;padding:.5em 1em;"
+                                        onclick="return confirm('Payer la tranche {{ $inst->installment_number }} de {{ $inst->formatted_amount }} via GeniusPay ?')">
+                                    <i class="bi bi-credit-card me-2"></i>
+                                    Payer {{ $inst->formatted_amount }} maintenant
+                                </button>
+                            </form>
+                        </div>
+                        @endif
+                    </div>
+                    @endforeach
+                </div>
+
+                {{-- Message si paiement à la livraison --}}
+                @if($nextInstallment && $order->payment && $order->payment->payment_method === 'cash_on_delivery')
+                <div class="px-4 py-3" style="background:#f0fdf4;border-top:1px solid var(--border);border-radius:0 0 14px 14px;">
+                    <div style="font-size:.82rem;color:#166534;">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Paiement à la livraison — le vendeur enregistrera vos tranches suivantes.
+                    </div>
+                </div>
+                @endif
+            </div>
+            @endif
+
             {{-- Adresse de livraison --}}
             @if($order->shipping_address)
             <div class="card" style="border-radius:16px;border:1.5px solid var(--border);">
@@ -114,7 +204,9 @@
                         <i class="bi bi-geo-alt-fill mt-1 flex-shrink-0" style="color:var(--primary);font-size:1.1rem;"></i>
                         <div>
                             <div class="fw-700 mb-1">{{ $order->shipping_address }}</div>
-                            <div class="text-muted">{{ $order->shipping_postal_code }} {{ $order->shipping_city }}</div>
+                            <div class="text-muted">
+                                {{ $order->shipping_quartier }}{{ $order->shipping_quartier ? ', ' : '' }}{{ $order->shipping_commune }}{{ $order->shipping_commune ? ' — ' : '' }}{{ $order->shipping_city }}
+                            </div>
                             @if($order->notes)
                                 <div class="mt-2 p-2 rounded-2" style="background:#fef9c3;font-size:.82rem;color:#854d0e;">
                                     <i class="bi bi-chat-quote me-1"></i><em>{{ $order->notes }}</em>
@@ -144,15 +236,29 @@
                     </h5>
                 </div>
                 <div class="card-body px-4 py-4">
-                    @php $ps = $order->payment->status; @endphp
+                    @php
+                        $ps = $order->payment->status;
+                        $ref = $order->payment->transaction_reference ?? '';
+                        $canVerify = $ps === 'pending'
+                            && $order->payment->payment_method !== 'cash_on_delivery'
+                            && $ref && !str_starts_with($ref, 'PENDING-');
+                    @endphp
                     <div class="mb-3">
                         <span style="padding:.3em .9em;border-radius:20px;font-size:.78rem;font-weight:800;
-                                     background:{{ $ps === 'success' ? '#dcfce7' : '#fee2e2' }};
-                                     color:{{ $ps === 'success' ? '#16a34a' : '#dc2626' }};">
-                            <i class="bi bi-{{ $ps === 'success' ? 'check-circle-fill' : 'x-circle-fill' }} me-1"></i>
+                                     background:{{ $ps === 'success' ? '#dcfce7' : ($ps === 'pending' ? '#fef9c3' : '#fee2e2') }};
+                                     color:{{ $ps === 'success' ? '#16a34a' : ($ps === 'pending' ? '#b45309' : '#dc2626') }};">
+                            <i class="bi bi-{{ $ps === 'success' ? 'check-circle-fill' : ($ps === 'pending' ? 'hourglass-split' : 'x-circle-fill') }} me-1"></i>
                             {{ $order->payment->status_label }}
                         </span>
                     </div>
+
+                    @if($canVerify)
+                    <a href="{{ route('payment.callback', $order) }}?gp_result=success"
+                       class="btn btn-sm fw-700 w-100 mb-3"
+                       style="background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;border-radius:10px;">
+                        <i class="bi bi-arrow-repeat me-2"></i>Vérifier mon paiement
+                    </a>
+                    @endif
                     <div class="d-flex justify-content-between mb-2" style="font-size:.88rem;">
                         <span class="text-muted">Référence</span>
                     </div>

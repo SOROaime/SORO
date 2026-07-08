@@ -72,6 +72,18 @@
             </a>
         </h6>
 
+        {{-- Note moyenne --}}
+        @php $avg = $product->avg_rating; $cnt = $product->reviews_count; @endphp
+        @if($cnt > 0)
+        <div class="d-flex align-items-center gap-1 mb-1" style="font-size:.75rem;">
+            @for($i=1;$i<=5;$i++)
+                <i class="bi bi-star{{ $i <= round($avg) ? '-fill' : '' }}"
+                   style="color:#f59e0b;font-size:.7rem;"></i>
+            @endfor
+            <span class="text-muted ms-1">{{ number_format($avg,1) }} ({{ $cnt }})</span>
+        </div>
+        @endif
+
         {{-- Description courte --}}
         @if($product->description)
             <p class="text-muted mb-2"

@@ -1,5 +1,13 @@
 @extends('layouts.app')
 @section('title', $product->name)
+@section('seo_title', $product->name . ' — ShopCI')
+@section('seo_description', Str::limit(strip_tags($product->description ?? $product->name . ' disponible sur ShopCI. Livraison gratuite en Côte d\'Ivoire.'), 155))
+@section('og_type', 'product')
+@section('og_image', $product->image_url)
+
+@push('seo_schema')
+<script type="application/ld+json">{!! $productSchema !!}</script>
+@endpush
 
 @section('content')
 
@@ -303,6 +311,182 @@
         </div>
     </div>
 
+    {{-- ─── SECTION AVIS & NOTES ─── --}}
+    <div class="mt-5 pt-4" style="border-top:1px solid var(--border);">
+        @php
+            $avgRating    = $reviews->avg('rating') ?? 0;
+            $roundedAvg   = round($avgRating, 1);
+            $reviewsCount = $reviews->count();
+            $ratingDist   = [5=>0, 4=>0, 3=>0, 2=>0, 1=>0];
+            foreach ($reviews as $r) $ratingDist[$r->rating]++;
+        @endphp
+
+        <div class="row g-5">
+
+            {{-- ── Résumé des notes ── --}}
+            <div class="col-lg-4">
+                <h3 class="section-title mb-4">
+                    <i class="bi bi-star-fill me-2" style="color:#f59e0b;"></i>Avis clients
+                </h3>
+
+                <div class="text-center p-4 rounded-3 mb-4"
+                     style="background:linear-gradient(135deg,#fffbeb,#fef9c3);border:1.5px solid #fde68a;">
+                    <div style="font-size:4rem;font-weight:900;color:#f59e0b;line-height:1;letter-spacing:-.04em;">
+                        {{ $roundedAvg > 0 ? number_format($roundedAvg,1) : '—' }}
+                    </div>
+                    <div class="my-2" style="font-size:1.5rem;color:#f59e0b;letter-spacing:2px;">
+                        @for($i=1;$i<=5;$i++)
+                            @if($i <= round($roundedAvg))
+                                <i class="bi bi-star-fill"></i>
+                            @elseif($i - 0.5 <= $roundedAvg)
+                                <i class="bi bi-star-half"></i>
+                            @else
+                                <i class="bi bi-star" style="opacity:.3;"></i>
+                            @endif
+                        @endfor
+                    </div>
+                    <div class="text-muted" style="font-size:.82rem;">
+                        {{ $reviewsCount }} avis
+                    </div>
+                </div>
+
+                {{-- Distribution des notes --}}
+                @foreach([5,4,3,2,1] as $star)
+                @php $cnt = $ratingDist[$star]; $pct = $reviewsCount > 0 ? round($cnt/$reviewsCount*100) : 0; @endphp
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span style="font-size:.75rem;font-weight:700;color:#64748b;min-width:12px;">{{ $star }}</span>
+                    <i class="bi bi-star-fill" style="font-size:.7rem;color:#f59e0b;"></i>
+                    <div style="flex:1;height:8px;background:#f1f5f9;border-radius:4px;overflow:hidden;">
+                        <div style="width:{{ $pct }}%;height:100%;background:#f59e0b;border-radius:4px;transition:width .5s;"></div>
+                    </div>
+                    <span class="text-muted" style="font-size:.72rem;min-width:20px;">{{ $cnt }}</span>
+                </div>
+                @endforeach
+            </div>
+
+            {{-- ── Formulaire + liste ── --}}
+            <div class="col-lg-8">
+
+                {{-- Formulaire d'avis --}}
+                @auth
+                <div class="card mb-4" style="border-radius:16px;border:1.5px solid var(--border);">
+                    <div class="card-header bg-white py-3 px-4"
+                         style="border-bottom:1px solid var(--border);border-radius:16px 16px 0 0;">
+                        <h6 class="mb-0 fw-800">
+                            {{ $userReview ? 'Modifier votre avis' : 'Laisser un avis' }}
+                        </h6>
+                    </div>
+                    <div class="card-body p-4">
+                        @if(session('success'))
+                            <div class="alert alert-success py-2 mb-3" style="font-size:.85rem;">
+                                <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
+                            </div>
+                        @endif
+                        <form action="{{ route('reviews.store', $product) }}" method="POST">
+                            @csrf
+                            {{-- Étoiles interactives --}}
+                            <div class="mb-3">
+                                <label class="form-label fw-600" style="font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);">
+                                    Votre note <span class="text-danger">*</span>
+                                </label>
+                                <div class="star-rating-input" id="starInput">
+                                    @for($i=1;$i<=5;$i++)
+                                    <input type="radio" name="rating" id="star{{ $i }}" value="{{ $i }}"
+                                           {{ ($userReview && $userReview->rating == $i) ? 'checked' : '' }} required>
+                                    <label for="star{{ $i }}" title="{{ $i }} étoile{{ $i>1?'s':'' }}">
+                                        <i class="bi bi-star-fill"></i>
+                                    </label>
+                                    @endfor
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-600" style="font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);">
+                                    Commentaire <span class="text-muted fw-400">(optionnel)</span>
+                                </label>
+                                <textarea name="comment" class="form-control" rows="3"
+                                          placeholder="Partagez votre expérience avec ce produit..."
+                                          maxlength="1000">{{ $userReview?->comment }}</textarea>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary fw-700">
+                                <i class="bi bi-send me-2"></i>
+                                {{ $userReview ? 'Mettre à jour' : 'Publier mon avis' }}
+                            </button>
+
+                            @if($userReview)
+                            <form action="{{ route('reviews.destroy', $userReview) }}" method="POST" class="d-inline ms-2">
+                                @csrf @method('DELETE')
+                                <button type="submit" class="btn btn-outline-danger btn-sm fw-600"
+                                        onclick="return confirm('Supprimer votre avis ?')">
+                                    <i class="bi bi-trash"></i> Supprimer
+                                </button>
+                            </form>
+                            @endif
+                        </form>
+                    </div>
+                </div>
+                @else
+                <div class="p-3 rounded-3 mb-4 text-center"
+                     style="background:#f8fafc;border:1.5px solid var(--border);font-size:.88rem;">
+                    <a href="{{ route('login') }}" class="fw-700 text-decoration-none">Connectez-vous</a>
+                    pour laisser un avis.
+                </div>
+                @endauth
+
+                {{-- Liste des avis --}}
+                @forelse($reviews as $review)
+                <div class="d-flex gap-3 py-3" style="border-bottom:1px solid var(--border);">
+                    {{-- Avatar --}}
+                    <div style="width:40px;height:40px;border-radius:50%;flex-shrink:0;
+                                background:linear-gradient(135deg,var(--primary),var(--primary-d));
+                                display:flex;align-items:center;justify-content:center;
+                                font-size:.85rem;font-weight:800;color:#fff;">
+                        {{ strtoupper(substr($review->user->name, 0, 1)) }}
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap">
+                            <div>
+                                <span class="fw-700" style="font-size:.9rem;">{{ $review->user->name }}</span>
+                                <span class="ms-2" style="color:#f59e0b;font-size:.85rem;">
+                                    @for($i=1;$i<=5;$i++)
+                                        <i class="bi bi-star{{ $i <= $review->rating ? '-fill' : '' }}"></i>
+                                    @endfor
+                                </span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="text-muted" style="font-size:.75rem;">
+                                    {{ $review->created_at->diffForHumans() }}
+                                </span>
+                                @if(auth()->check() && (auth()->id() === $review->user_id || auth()->user()->isAdmin()))
+                                <form action="{{ route('reviews.destroy', $review) }}" method="POST">
+                                    @csrf @method('DELETE')
+                                    <button type="submit" class="btn btn-link btn-sm text-danger p-0"
+                                            style="font-size:.75rem;"
+                                            onclick="return confirm('Supprimer cet avis ?')">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                                @endif
+                            </div>
+                        </div>
+                        @if($review->comment)
+                        <p class="mb-0 mt-1" style="font-size:.87rem;color:var(--text);line-height:1.7;">
+                            {{ $review->comment }}
+                        </p>
+                        @endif
+                    </div>
+                </div>
+                @empty
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-chat-square-text fs-2 d-block mb-2"></i>
+                    Aucun avis pour l'instant. Soyez le premier !
+                </div>
+                @endforelse
+            </div>
+        </div>
+    </div>
+
     {{-- ─── PRODUITS SIMILAIRES ─── --}}
     @if($relatedProducts->isNotEmpty())
         <div class="mt-5 pt-4" style="border-top:1px solid var(--border);">
@@ -387,6 +571,14 @@
         100% { transform: scale(1); }
     }
     /* Toast notification */
+    /* ── Étoiles interactives ── */
+    .star-rating-input { display:flex; flex-direction:row-reverse; gap:4px; width:fit-content; }
+    .star-rating-input input { display:none; }
+    .star-rating-input label { font-size:2rem; color:#d1d5db; cursor:pointer; transition:color .15s; }
+    .star-rating-input input:checked ~ label,
+    .star-rating-input label:hover,
+    .star-rating-input label:hover ~ label { color:#f59e0b; }
+
     .fav-toast {
         position: fixed;
         bottom: 1.5rem; right: 1.5rem;

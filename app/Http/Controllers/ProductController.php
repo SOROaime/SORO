@@ -78,7 +78,45 @@ class ProductController extends Controller
             ->take(4)
             ->get();
 
-        return view('products.show', compact('product', 'relatedProducts'));
+        $reviews    = $product->reviews()->with('user')->get();
+        $userReview = auth()->check()
+            ? $reviews->firstWhere('user_id', auth()->id())
+            : null;
+
+        $schemaData = [
+            '@context'    => 'https://schema.org',
+            '@type'       => 'Product',
+            'name'        => $product->name,
+            'description' => \Illuminate\Support\Str::limit(strip_tags($product->description ?? ''), 300),
+            'image'       => $product->image_url,
+            'url'         => route('products.show', $product),
+            'brand'       => ['@type' => 'Brand', 'name' => 'ShopCI'],
+            'offers'      => [
+                '@type'           => 'Offer',
+                'priceCurrency'   => 'XOF',
+                'price'           => (string) $product->price,
+                'availability'    => $product->stock > 0
+                    ? 'https://schema.org/InStock'
+                    : 'https://schema.org/OutOfStock',
+                'seller'          => ['@type' => 'Organization', 'name' => 'ShopCI'],
+            ],
+        ];
+
+        $avgRating    = round($reviews->avg('rating') ?? 0, 1);
+        $reviewCount  = $reviews->count();
+        if ($reviewCount > 0) {
+            $schemaData['aggregateRating'] = [
+                '@type'       => 'AggregateRating',
+                'ratingValue' => (string) $avgRating,
+                'reviewCount' => (string) $reviewCount,
+                'bestRating'  => '5',
+                'worstRating' => '1',
+            ];
+        }
+
+        $productSchema = json_encode($schemaData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+
+        return view('products.show', compact('product', 'relatedProducts', 'reviews', 'userReview', 'productSchema'));
     }
 
     // ========================
