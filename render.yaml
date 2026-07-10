@@ -2,8 +2,10 @@ services:
   - type: web
     name: shopci
     runtime: docker
-    plan: free
+    plan: standard
+    region: frankfurt
     dockerfilePath: ./Dockerfile
+    healthCheckPath: /
     envVars:
       - key: APP_ENV
         value: production
