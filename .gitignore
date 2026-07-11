@@ -3,7 +3,7 @@
 /public/hot
 /public/storage
 /storage/*.key
-/vendor
+# /vendor — inclus dans Git car Hostinger bloque proc_open (pas de composer install)
 .env
 .env.backup
 .env.production
