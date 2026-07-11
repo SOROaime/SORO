@@ -19,7 +19,13 @@ class ForceHttpsMiddleware
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if (!$request->secure() && app()->environment('production')) {
+        // Hostinger utilise un proxy — détecter HTTPS via les headers X-Forwarded
+        $isHttps = $request->secure()
+            || $request->header('X-Forwarded-Proto') === 'https'
+            || $request->header('X-Forwarded-Ssl') === 'on'
+            || $request->server('HTTP_X_FORWARDED_PROTO') === 'https';
+
+        if (!$isHttps && app()->environment('production')) {
             return redirect()->secure($request->getRequestUri(), 301);
         }
 
